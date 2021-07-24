@@ -6,7 +6,7 @@ Authors' official PyTorch implementation of the [WarpedGANSpace: Finding non-lin
 
 ## Overview
 
-![WarpedGANSpace Overview](overview.svg)
+<img src="overview.svg" alt="WarpedGANSpace Overview" style="zoom:150%;" />
 
 
 
