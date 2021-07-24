@@ -9,8 +9,6 @@ Authors official PyTorch implementation of the **WarpedGANSpace: Finding non-lin
 <p align="center">
 <img src="overview.svg" alt="WarpedGANSpace Overview"/>
 </p>
-<!--A latent code <img src="https://render.githubusercontent.com/render/math?math=\mathbf{z}\sim\mathcal{N}\left(\mathbf{0},I_d\right)"> is shifted by a vector induced by a warping function <img src="https://render.githubusercontent.com/render/math?math=f^k"> implemented by the warping network <img src="https://render.githubusercontent.com/render/math?math=\mathcal{W}"> after choosing the corresponding support set <img src="https://render.githubusercontent.com/render/math?math=\mathcal{S}^k">, weights <img src="https://render.githubusercontent.com/render/math?math=\mathcal{A}^k"> and parameters <img src="https://render.githubusercontent.com/render/math?math=\mathcal{G}^k">. The pair of latent codes, <img src="https://render.githubusercontent.com/render/math?math=\mathbf{z}"> and <img src="https://render.githubusercontent.com/render/math?math=\mathbf{z}+\epsilon_k\frac{\nabla f^k(\mathbf{z})}{\lVert\nabla f^k(\mathbf{z})\rVert}">, are then fed into the generator <img src="https://render.githubusercontent.com/render/math?math=\mathfrak{G}"> in order to produce two images. The reconstructor <img src="https://render.githubusercontent.com/render/math?math=\mathfrak{R}"> is optimized to reproduce the signed shift magnitude <img src="https://render.githubusercontent.com/render/math?math=\epsilon_k"> and predict the index <img src="https://render.githubusercontent.com/render/math?math=k"> of the support set used.-->
-
 
 
 ## Installation
@@ -26,15 +24,44 @@ $ source warped-gan-space/bin/activate
 
 
 
+## Download pre-trained models
+
+Download pre-trained models (i.e., GAN generators, face detector, etc.) as follows:
+
+```bash
+$ python download.py	
+```
+
+This will create a directory `./models/pretrained` with the following sub-directories (~3.2GiB):
+
+```
+./models/pretrained/
+├── arcface
+├── deformators
+├── fairface
+├── fanet
+├── generators
+├── hopenet
+└── sfd
+```
+
+
+
 ## Training
+
+TODO
 
 
 
 ## Evaluation
 
+TODO
+
 
 
 ## Examples
+
+TODO
 
 
 
@@ -48,16 +75,6 @@ $ source warped-gan-space/bin/activate
   year={2021}
 }
 ```
-
-
-
-## References
-
-[1] Voynov, Andrey, and Artem Babenko. "Unsupervised discovery of interpretable directions in the gan latent space." *International Conference on Machine Learning*. PMLR, 2020. [[Paper](https://arxiv.org/abs/2002.03754)] [[Code](https://github.com/anvoynov/GANLatentDiscovery)]
-
-
-
-
 
 
 
