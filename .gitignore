@@ -1,0 +1,14 @@
+.directory
+*/.directory
+*~
+.idea/
+warped-gan-space/
+*.pyc
+__pycache__/
+*/__pycache__/
+dev/.ipynb_checkpoints/
+models/wip/
+models/experiments/
+models/pretrained/
+results/*
+!results/image_samples/
