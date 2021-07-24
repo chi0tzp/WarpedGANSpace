@@ -7,8 +7,17 @@ Authors official PyTorch implementation of the **WarpedGANSpace: Finding non-lin
 ## Overview
 
 <p align="center">
-<img src="overview.svg" alt="WarpedGANSpace Overview"/>
+<img src="./figs/overview.svg" alt="WarpedGANSpace Overview"/>
 </p>
+
+
+<p align="center">
+<img src="./figs/interpretable_path.svg" alt="Non-linear interpretable path"/>
+</p>
+
+
+
+
 
 
 ## Installation
