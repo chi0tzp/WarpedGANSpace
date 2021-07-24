@@ -5,7 +5,7 @@ import hashlib
 import tarfile
 import time
 import urllib.request
-from lib import GAN_WEIGHTS, LINEAR_DIRECTIONS, SFD, ARCFACE, FAIRFACE, HOPENET, FANET
+from lib import GAN_WEIGHTS, SFD, ARCFACE, FAIRFACE, HOPENET, FANET
 
 
 def reporthook(count, block_size, total_size):
@@ -54,11 +54,10 @@ def main():
             -- BigGAN [4] for ILSVRC dataset [5]
             -- ProgGAN [6] for CelebA-HQ dataset [7]
             -- StyleGAN2 for FFHQ dataset [8, 9]
-        -- Linear deformators [10]
-        -- SFD face detector [11]
-        -- ArcFace [12]
-        -- FairFace [13]
-        -- Hopenet [14]
+        -- SFD face detector [10]
+        -- ArcFace [11]
+        -- FairFace [12]
+        -- Hopenet [13]
 
     [1] Miyato, T., Kataoka, T., Koyama, M., and Yoshida, Y. Spectral normalization for generative adversarial networks.
         In International Conference on Learning Representations, 2018.
@@ -87,19 +86,16 @@ def main():
     [9] Karras, Tero, et al. "Analyzing and improving the image quality of stylegan." Proceedings of the IEEE/CVF
         Conference on Computer Vision and Pattern Recognition. 2020.
 
-    [10] Andrey Voynov, Artem Babenko, "Unsupervised Discovery of Interpretable Directions in the GAN Latent Space",
-         ICML 2020: 9786-9796, https://github.com/anvoynov/GANLatentDiscovery
-
-    [11] Zhang, Shifeng, et al. "S3FD: Single shot scale-invariant face detector." Proceedings of the IEEE
+    [10] Zhang, Shifeng, et al. "S3FD: Single shot scale-invariant face detector." Proceedings of the IEEE
          international conference on computer vision. 2017.
 
-    [12] Deng, Jiankang, et al. "ArcFace: Additive angular margin loss for deep face recognition." Proceedings of the
+    [11] Deng, Jiankang, et al. "ArcFace: Additive angular margin loss for deep face recognition." Proceedings of the
          IEEE/CVF Conference on Computer Vision and Pattern Recognition. 2019.
 
-    [13] Karkkainen, Kimmo, and Jungseock Joo. "FairFace: Face attribute dataset for balanced race, gender, and age."
+    [12] Karkkainen, Kimmo, and Jungseock Joo. "FairFace: Face attribute dataset for balanced race, gender, and age."
          arXiv preprint arXiv:1908.04913 (2019).
 
-    [14] Doosti, Bardia, et al. "Hope-net: A graph-based model for hand-object pose estimation." Proceedings of the
+    [13] Doosti, Bardia, et al. "Hope-net: A graph-based model for hand-object pose estimation." Proceedings of the
          IEEE/CVF Conference on Computer Vision and Pattern Recognition. 2020.
 
     """
@@ -115,10 +111,6 @@ def main():
         print("      \\__Create dir: {}".format(model_dir))
         os.makedirs(model_dir, exist_ok=True)
         download(src=GAN_WEIGHTS[m]['url'], sha256sum=GAN_WEIGHTS[m]['sha256sum'], dest=model_dir)
-
-    print("#. Download pre-trained linear directions (deformators)...")
-    print("  \\__.Deformators")
-    download(src=LINEAR_DIRECTIONS[0], sha256sum=LINEAR_DIRECTIONS[1], dest=pretrained_root)
 
     print("#. Download pre-trained SFD face detector model...")
     print("  \\__.Face detector (SFD)")
