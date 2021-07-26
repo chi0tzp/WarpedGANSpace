@@ -1,4 +1,4 @@
-from .aux import create_output_dir, torch_expm, update_stdout, update_progress
+from .aux import create_exp_dir, torch_expm, update_stdout, update_progress
 from .config import GAN_RESOLUTIONS, GAN_WEIGHTS, RECONSTRUCTOR_TYPES, BIGGAN_CLASSES, SFD, ARCFACE, FAIRFACE, \
     HOPENET, FANET
 from .support_sets import SupportSets

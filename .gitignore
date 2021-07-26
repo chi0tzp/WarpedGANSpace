@@ -7,8 +7,7 @@ warped-gan-space/
 __pycache__/
 */__pycache__/
 dev/.ipynb_checkpoints/
-models/wip/
-models/experiments/
 models/pretrained/
+experiments/
 results/*
 !results/image_samples/
