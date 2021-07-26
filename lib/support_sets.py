@@ -1,11 +1,9 @@
-import sys
 import torch
 from torch import nn
 
 
 class SupportSets(nn.Module):
     """Support Sets class
-
 
         TODO: K = as many as the desired interpretable paths
             Each support set contains `num_support_dipoles` support vector dipoles -- i.e., "antipodal" support vectors
