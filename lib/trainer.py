@@ -87,8 +87,8 @@ class Trainer(object):
             checkpoint_dict = torch.load(self.checkpoint)
             starting_iter = checkpoint_dict['iter']
             support_sets.load_state_dict(checkpoint_dict['support_sets'])
-            reconstructor.load_state_dict(checkpoint_dict['reconstructor'])
-
+            # REVIEW: does it load the weights correctly?
+            reconstructor.load_state_dict(checkpoint_dict['reconstructor'], strict=False)
         return starting_iter
 
     def log_progress(self, iteration, mean_iter_time, elapsed_time, eta):
