@@ -112,9 +112,6 @@ def main():
         torch.set_default_tensor_type('torch.FloatTensor')
         args.multi_gpu = False
 
-    # REVIEW: debug!
-    # args.multi_gpu = True
-
     # Build GAN generator model and load with pre-trained weights
     print("#. Build GAN generator model G and load with pre-trained weights...")
     print("  \\__GAN type: {}".format(args.gan_type))

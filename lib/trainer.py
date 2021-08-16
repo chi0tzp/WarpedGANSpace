@@ -87,8 +87,9 @@ class Trainer(object):
             checkpoint_dict = torch.load(self.checkpoint)
             starting_iter = checkpoint_dict['iter']
             support_sets.load_state_dict(checkpoint_dict['support_sets'])
-            # REVIEW: does it load the weights correctly?
-            reconstructor.load_state_dict(checkpoint_dict['reconstructor'], strict=False)
+            reconstructor.load_state_dict(checkpoint_dict['reconstructor'])
+            # REVIEW: does it load the weights correctly?  -- It doesn't!
+            # reconstructor.load_state_dict(checkpoint_dict['reconstructor'], strict=False)
         return starting_iter
 
     def log_progress(self, iteration, mean_iter_time, elapsed_time, eta):
@@ -152,14 +153,6 @@ class Trainer(object):
             support_sets.train()
             reconstructor.train()
 
-        # Parallelize `generator` and `reconstructor` into multiple GPUs, if available and `multi_gpu=True`.
-        if self.multi_gpu:
-            print("#. Parallelize G, R over {} GPUs...".format(torch.cuda.device_count()))
-            generator = DataParallelPassthrough(generator)
-            reconstructor = DataParallelPassthrough(reconstructor)
-            # REVIEW: cudnn
-            cudnn.benchmark = True
-
         # Set directions_matrix optimizer
         support_sets_optim = torch.optim.Adam(support_sets.parameters(), lr=self.params.support_set_lr)
 
@@ -168,6 +161,13 @@ class Trainer(object):
 
         # Get starting iteration
         starting_iter = self.get_starting_iteration(support_sets, reconstructor)
+
+        # Parallelize `generator` and `reconstructor` into multiple GPUs, if available and `multi_gpu=True`.
+        if self.multi_gpu:
+            print("#. Parallelize G, R over {} GPUs...".format(torch.cuda.device_count()))
+            generator = DataParallelPassthrough(generator)
+            reconstructor = DataParallelPassthrough(reconstructor)
+            cudnn.benchmark = True
 
         # Check starting iteration
         if starting_iter == self.params.max_iter:
