@@ -13,7 +13,7 @@ def create_exp_dir(args):
     Experiment's directory name format:
 
         <gan_type>(-<stylegan2_resolution>)-<reconstructor_type>-K<num_support_sets>-N<num_support_dipoles>
-            (-LearnAlphas)(-LearnGammas)-eps<min_shift_magnitude>_<max_shift_magnitude>-
+            (-LearnAlphas)(-LearnGammas)-eps<min_shift_magnitude>_<max_shift_magnitude>
     E.g.:
 
         experiments/wip/ProgGAN-ResNet-K200-N32-LearnGammas-eps0.35_0.5
