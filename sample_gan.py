@@ -37,6 +37,9 @@ def main():
     Options:
         -v, --verbose           : set verbose mode on
         -g, --gan-type          : set GAN type (SNGAN_MNIST, SNGAN_AnimeFaces, BigGAN, ProgGAN, or StyleGAN2)
+        --z-truncation          : set latent code sampling truncation parameter. If set, latent codes will be sampled
+                                  from a standard Gaussian distribution truncated to the range [-args.z_truncation,
+                                  +args.z_truncation]
         --biggan-target-classes : set list of classes to use for conditional BigGAN (see BIGGAN_CLASSES in
                                   lib/config.py). E.g., --biggan-target-classes 14 239.
         --stylegan2-resolution  : set StyleGAN2 generator output images resolution (256 or 1024)
@@ -49,6 +52,7 @@ def main():
     parser = argparse.ArgumentParser(description="Sample a pre-trained GAN latent space and generate images")
     parser.add_argument('-v', '--verbose', action='store_true', help="set verbose mode on")
     parser.add_argument('-g', '--gan-type', type=str, choices=GAN_WEIGHTS.keys(), help='GAN generator model type')
+    parser.add_argument('--z-truncation', type=float, help="set latent code sampling truncation parameter")
     parser.add_argument('--biggan-target-classes', nargs='+', type=int, help="list of classes for conditional BigGAN")
     parser.add_argument('--stylegan2-resolution', type=int, default=1024, choices=(256, 1024),
                         help="StyleGAN2 image resolution")
@@ -128,7 +132,11 @@ def main():
     # Latent codes sampling
     if args.verbose:
         print("#. Sample {} {}-dimensional latent codes...".format(args.num_samples, G.dim_z))
-    zs = torch.randn(args.num_samples, G.dim_z)
+        if args.z_truncation:
+            print("  \\__Truncate standard Gaussian to range [{}, +{}]".format(-args.z_truncation, args.z_truncation))
+
+    # zs = torch.randn(args.num_samples, G.dim_z)
+    zs = sample_z(batch_size=args.num_samples, dim_z=G.dim_z, truncation=args.z_truncation)
 
     if use_cuda:
         zs = zs.cuda()

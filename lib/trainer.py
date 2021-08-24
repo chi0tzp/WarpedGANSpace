@@ -10,7 +10,7 @@ import time
 import shutil
 from torch.utils.tensorboard import SummaryWriter
 from tensorboard import program
-from .aux import TrainingStatTracker, update_progress, update_stdout, sec2dhms
+from .aux import sample_z, TrainingStatTracker, update_progress, update_stdout, sec2dhms
 
 
 class DataParallelPassthrough(nn.DataParallel):
@@ -195,8 +195,9 @@ class Trainer(object):
             support_sets.zero_grad()
             reconstructor.zero_grad()
 
-            # Sample latent codes from standard Gaussian N(0,I) -- torch.Size([batch_size, generator.dim_z])
-            z = torch.randn(self.params.batch_size, generator.dim_z)
+            # Sample latent codes from standard (truncated) Gaussian -- torch.Size([batch_size, generator.dim_z])
+            z = sample_z(batch_size=self.params.batch_size, dim_z=generator.dim_z, truncation=self.params.truncation)
+
             if self.use_cuda:
                 z = z.cuda()
 

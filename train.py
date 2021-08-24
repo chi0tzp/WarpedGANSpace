@@ -10,6 +10,9 @@ def main():
     Options:
         ===[ Pre-trained GAN Generator (G) ]============================================================================
         --gan-type                 : set pre-trained GAN type
+        --z-truncation             : set latent code sampling truncation parameter. If set, latent codes will be sampled
+                                     from a standard Gaussian distribution truncated to the range [-args.z_truncation,
+                                     +args.z_truncation]
         --biggan-target-classes    : set list of classes to use for conditional BigGAN (see BIGGAN_CLASSES in
                                      lib/config.py). E.g., --biggan-target-classes 14 239.
         --stylegan2-resolution     : set StyleGAN2 generator output images resolution:  256 or 1024 (default: 1024)
@@ -51,6 +54,7 @@ def main():
 
     # === Pre-trained GAN Generator (G) ============================================================================== #
     parser.add_argument('--gan-type', type=str, choices=GAN_WEIGHTS.keys(), help='set GAN generator model type')
+    parser.add_argument('--z-truncation', type=float, help="set latent code sampling truncation parameter")
     parser.add_argument('--biggan-target-classes', nargs='+', type=int, help="list of classes for conditional BigGAN")
     parser.add_argument('--stylegan2-resolution', type=int, default=1024, choices=(256, 1024),
                         help="StyleGAN2 image resolution")

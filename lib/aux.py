@@ -4,6 +4,51 @@ import os.path as osp
 import json
 import argparse
 import numpy as np
+import torch
+from scipy.stats import truncnorm
+
+
+class TrainingStatTracker(object):
+    def __init__(self):
+        self.stat_tracker = {
+            'accuracy': [],
+            'classification_loss': [],
+            'regression_loss': [],
+            'total_loss': []
+        }
+
+    def update(self, accuracy, classification_loss, regression_loss, total_loss):
+        self.stat_tracker['accuracy'].append(float(accuracy))
+        self.stat_tracker['classification_loss'].append(float(classification_loss))
+        self.stat_tracker['regression_loss'].append(float(regression_loss))
+        self.stat_tracker['total_loss'].append(float(total_loss))
+
+    def get_means(self):
+        stat_means = dict()
+        for key, value in self.stat_tracker.items():
+            stat_means.update({key: np.mean(value)})
+        return stat_means
+
+    def flush(self):
+        for key in self.stat_tracker.keys():
+            self.stat_tracker[key] = []
+
+
+def sample_z(batch_size, dim_z, truncation=None):
+    """Sample a random latent code from multi-variate standard Gaussian distribution with/without truncation.
+
+    Args:
+        batch_size (int)   : batch size (number of latent codes)
+        dim_z (int)        : latent space dimensionality
+        truncation (float) : TODO: +++
+
+    Returns:
+        z (torch.Tensor)   : batch of latent codes
+    """
+    if truncation is None or truncation == 1.0:
+        return torch.randn(batch_size, dim_z)
+    else:
+        return torch.from_numpy(truncnorm.rvs(-truncation, truncation, size=(batch_size, dim_z))).to(torch.float)
 
 
 def create_exp_dir(args):
@@ -55,32 +100,6 @@ def create_exp_dir(args):
         command_file.write(' '.join(sys.argv) + '\n')
 
     return exp_dir
-
-
-class TrainingStatTracker(object):
-    def __init__(self):
-        self.stat_tracker = {
-            'accuracy': [],
-            'classification_loss': [],
-            'regression_loss': [],
-            'total_loss': []
-        }
-
-    def update(self, accuracy, classification_loss, regression_loss, total_loss):
-        self.stat_tracker['accuracy'].append(float(accuracy))
-        self.stat_tracker['classification_loss'].append(float(classification_loss))
-        self.stat_tracker['regression_loss'].append(float(regression_loss))
-        self.stat_tracker['total_loss'].append(float(total_loss))
-
-    def get_means(self):
-        stat_means = dict()
-        for key, value in self.stat_tracker.items():
-            stat_means.update({key: np.mean(value)})
-        return stat_means
-
-    def flush(self):
-        for key in self.stat_tracker.keys():
-            self.stat_tracker[key] = []
 
 
 def update_progress(msg, total, progress):
