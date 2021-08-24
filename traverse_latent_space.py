@@ -293,7 +293,7 @@ def main():
         print("  \\__Shift steps: {}".format(2 * args.shift_steps))
         print("  \\__Traversal length: {}".format(2 * args.shift_steps * args.eps))
         print("  \\__Save results at: {}".format(out_dir))
-    
+
     # Iterate over given latent codes
     for i in range(num_of_latent_codes):
         # Un-squeeze current latent code in shape [1, dim] and create hash code for it
