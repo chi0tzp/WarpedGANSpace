@@ -10,7 +10,7 @@ from models.SNGAN.distribution import NormalDistribution
 try:
     from models.StyleGAN2.model import Generator as StyleGAN2Generator
 except Exception as e:
-    print("StyleGAN2 load fail: {}".format(e))
+    print("Failed loading StyleGAN2: {}".format(e))
 
 
 ########################################################################################################################

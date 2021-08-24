@@ -196,7 +196,7 @@ class Trainer(object):
             reconstructor.zero_grad()
 
             # Sample latent codes from standard (truncated) Gaussian -- torch.Size([batch_size, generator.dim_z])
-            z = sample_z(batch_size=self.params.batch_size, dim_z=generator.dim_z, truncation=self.params.truncation)
+            z = sample_z(batch_size=self.params.batch_size, dim_z=generator.dim_z, truncation=self.params.z_truncation)
 
             if self.use_cuda:
                 z = z.cuda()
