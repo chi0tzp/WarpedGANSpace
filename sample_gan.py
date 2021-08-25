@@ -85,7 +85,7 @@ def main():
     if args.pool:
         out_dir = osp.join(out_dir, args.pool)
     else:
-        out_dir = osp.join(out_dir, '{}{}'.format(args.gan_type, args.num_samples))
+        out_dir = osp.join(out_dir, '{}_{}'.format(args.gan_type, args.num_samples))
 
     if args.gan_type == 'BigGAN':
         if args.biggan_target_classes is None:
