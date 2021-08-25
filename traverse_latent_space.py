@@ -127,14 +127,17 @@ def main():
                         file that contains the arguments the model has been trained with.
         --pool        : directory of pre-defined pool of latent codes (created by `sample_gan.py`)
         ================================================================================================================
-        --shift-steps : number of shifts to be applied to each latent code at each direction (positive/negative).
+        --shift-steps : set number of shifts to be applied to each latent code at each direction (positive/negative).
                         That is, the total number of shifts applied to each latent code will be equal to
                         2 * args.shift_steps.
-        --eps         : shift step magnitude for generating G(z'), where z' = z + eps * direction.
-        --path-step   : path step (after how many steps to generate images)
+        --eps         : set shift step magnitude for generating G(z'), where z' = z +/- eps * direction.
+        --path-step   : set path step (after how many steps to generate images)
         --batch-size  : generator batch size
         --img-size    : image size
         --img-quality : JPEG image quality (max 95)
+        --gif         : generate collated GIF images for all paths and all latent codes
+        --gif-size    : set GIF image size
+        --gif-fps     : set number of frames per second for the generated GIF images
         ================================================================================================================
         --cuda        : use CUDA (default)
         --no-cuda     : do not use CUDA
@@ -147,16 +150,15 @@ def main():
     parser.add_argument('--exp', type=str, required=True, help="set experiment's model dir (created by `train.py`)")
     parser.add_argument('--pool', type=str, required=True, help="directory of pre-defined pool of latent codes"
                                                                 "(created by `sample_gan.py`)")
-    # ---------------------------------------------------------------------------------------------------------------- #
-    parser.add_argument('--shift-steps', type=int, default=16, help="set number of shifts +++")
+    parser.add_argument('--shift-steps', type=int, default=16, help="set number of shifts per positive/negative path "
+                                                                    "direction")
     parser.add_argument('--eps', type=float, default=0.5, help="set shift magnitude")
-    parser.add_argument('--path-step', type=int, default=1, help="")
+    parser.add_argument('--path-step', type=int, default=1, help="TODO")
     parser.add_argument('--batch-size', type=int, help="set generator batch size")
     parser.add_argument('--img-size', type=int, default=256, help="set image resolution")
     parser.add_argument('--img-quality', type=int, default=75, help="set JPEG image quality")
-    # ---------------------------------------------------------------------------------------------------------------- #
     parser.add_argument('--gif', action='store_true', help="Create GIF traversals")
-    parser.add_argument('--gif-size', type=int, default=196, help="set gif resolution")
+    parser.add_argument('--gif-size', type=int, default=128, help="set gif resolution")
     parser.add_argument('--gif-fps', type=int, default=30, help="set gif frame rate")
     # ================================================================================================================ #
     parser.add_argument('--cuda', dest='cuda', action='store_true', help="use CUDA during training")
@@ -255,7 +257,8 @@ def main():
     num_gen_paths = S.num_support_sets
 
     # Create output dir for generated images
-    out_dir = osp.join(args.exp, 'results', args.pool, '{}'.format(args.eps))
+    out_dir = osp.join(args.exp, 'results', args.pool,
+                       '{}_{}_{}'.format(2 * args.shift_steps, args.eps, round(2 * args.shift_steps * args.eps, 3)))
     os.makedirs(out_dir, exist_ok=True)
 
     # Set default batch size
@@ -291,7 +294,7 @@ def main():
         print("#. Traverse latent space...")
         print("  \\__Experiment: {}".format(osp.basename(osp.abspath(args.exp))))
         print("  \\__Shift steps: {}".format(2 * args.shift_steps))
-        print("  \\__Traversal length: {}".format(2 * args.shift_steps * args.eps))
+        print("  \\__Traversal length: {}".format(round(2 * args.shift_steps * args.eps, 3)))
         print("  \\__Save results at: {}".format(out_dir))
 
     # Iterate over given latent codes

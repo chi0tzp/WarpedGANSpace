@@ -77,9 +77,12 @@ def main():
         --exp         : set experiment's model dir, as created by `train.py` and used by `traverse_latent_space.py`.
                         That is, it should contain the traversals for at least one latent codes/images pool, under the
                         results/ directory.
-        --eps       : if specified, evaluation will be done only under this subdirectory
-        --pool      : set pool of latent codes (should be a subdirectory of experiments/<exp>/results/, as created by
-                      traverse_latent_space.py)
+        --pool        : set pool of latent codes (should be a subdirectory of experiments/<exp>/results/<gan_type>, as
+                        created by traverse_latent_space.py)
+        If the following two arguments are specified, evaluation (attribute space traversals) will be performed only for
+        the given configuration (subdir of experiments/<exp>/results/<gan_type>/<pool>/):
+        --shift-steps : number of shift steps (per positive/negative path direction)
+        --eps         : shift magnitude
         ================================================================================================================
         --cuda      : use CUDA during training (default).
         --no-cuda   : do NOT use CUDA during training.
@@ -112,8 +115,9 @@ def main():
                                                                 "latent traversals (should be a subdirectory of "
                                                                 "experiments/<exp>/results/, as created by "
                                                                 "traverse_latent_space.py)")
-    parser.add_argument('--eps', type=float, help="if specified, evaluation will be done only for the given shift "
-                                                  "magnitude (<exp>/results/<pool>/<eps>/)")
+    parser.add_argument('--shift-steps', type=int, default=16, help="number of shifts per positive/negative path "
+                                                                    "direction")
+    parser.add_argument('--eps', type=float, help="shift magnitude")
     # ================================================================================================================ #
     parser.add_argument('--cuda', dest='cuda', action='store_true', help="use CUDA during training")
     parser.add_argument('--no-cuda', dest='cuda', action='store_false', help="do NOT use CUDA during training")
@@ -132,16 +136,18 @@ def main():
             raise NotADirectoryError("Error: pool directory {} not found under {}".format(
                 args.pool, osp.join(args.exp, 'results')))
 
-    # Get shift magnitude steps under the given latent traversals directory
-    if args.eps is None:
-        shift_magnitude_steps = [dI for dI in os.listdir(latent_traversal_dir) if
-                                 osp.isdir(os.path.join(latent_traversal_dir, dI))]
+    # TODO: Get shift magnitude steps under the given latent traversals directory
+    if (args.shift_steps is None) and (args.eps is None):
+        latent_space_traversal_configs = [dI for dI in os.listdir(latent_traversal_dir) if
+                                          osp.isdir(os.path.join(latent_traversal_dir, dI))]
     else:
-        shift_magnitude_steps = ['{}'.format(args.eps)]
+        latent_space_traversal_configs = ['{}_{}_{}'.format(2 * args.shift_steps,
+                                                            args.eps,
+                                                            round(2 * args.shift_steps * args.eps, 3))]
 
     if args.verbose:
         print("#. Calculate attribute traversals in {}".format(latent_traversal_dir))
-        print("  \\__.Shift magnitude steps: {}".format(shift_magnitude_steps))
+        print("  \\__.Latent space traversal configs: {}".format(latent_space_traversal_configs))
 
     # Use CUDA boolean
     use_cuda = args.cuda and torch.cuda.is_available()
@@ -266,12 +272,13 @@ def main():
     ##                                         [ Attribute Space Traversals ]                                         ##
     ##                                                                                                                ##
     ####################################################################################################################
-    for eps in shift_magnitude_steps:
+    for l_config in latent_space_traversal_configs:
         if args.verbose:
-            print("       \\__.eps: {}".format(eps))
+            print("       \\__.Latent space traversal config: {}".format(l_config))
 
         # Navigate all hashes directories (i.e., sample latent codes)
-        hashes_dir = osp.join(latent_traversal_dir, '{}'.format(eps))
+        hashes_dir = osp.join(latent_traversal_dir, '{}_{}_{}'.format(2 * args.shift_steps, args.eps,
+                                                                      round(2 * args.shift_steps * args.eps, 3)))
         hashes = [dI for dI in os.listdir(hashes_dir)
                   if osp.isdir(os.path.join(hashes_dir, dI)) and dI not in ('paths_gifs', 'validation_results')]
 
