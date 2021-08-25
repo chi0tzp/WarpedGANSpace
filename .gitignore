@@ -8,8 +8,10 @@ __pycache__/
 */__pycache__/
 dev/.ipynb_checkpoints/
 models/pretrained/
-experiments/
-!experiments/latent_codes/
 
-#results/*
-#!results/image_samples/
+#experiments/*
+#!experiments/latent_codes/
+
+!experiments/
+experiments/*
+!experiments/latent_codes/
