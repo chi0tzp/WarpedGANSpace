@@ -11,7 +11,7 @@ num_support_dipoles=512
 min_shift_magnitude=0.15
 max_shift_magnitude=0.25
 reconstructor_type="ResNet"
-batch_size=12
+batch_size=32
 max_iter=200000
 tensorboard=true
 
@@ -33,6 +33,7 @@ if $tensorboard ; then
 fi
 
 CUDA_VISIBLE_DEVICES=${GPUS} python train.py $tb \
+                                             --multi-gpu \
                                              --gan-type=${gan_type} \
                                              --biggan-target-classes=${biggan_target_classes} \
                                              --reconstructor-type=${reconstructor_type} \
