@@ -56,7 +56,7 @@ def main():
     parser.add_argument('--biggan-target-classes', nargs='+', type=int, help="list of classes for conditional BigGAN")
     parser.add_argument('--stylegan2-resolution', type=int, default=1024, choices=(256, 1024),
                         help="StyleGAN2 image resolution")
-    parser.add_argument('--num-samples', type=int, default=3, help="number of latent codes to sample")
+    parser.add_argument('--num-samples', type=int, default=4, help="number of latent codes to sample")
 
     parser.add_argument('--pool', type=str, help="name of latent codes/images pool")
     parser.add_argument('--cuda', dest='cuda', action='store_true', help="use CUDA during training")
@@ -67,6 +67,28 @@ def main():
 
     # Parse given arguments
     args = parser.parse_args()
+
+    # Get BigGAN classes
+    biggan_classes = None
+    if args.gan_type == 'BigGAN':
+        if args.biggan_target_classes is None:
+            raise parser.error("In case of BigGAN, a list of classes needs to be determined.")
+        biggan_classes = ''
+        for c in args.biggan_target_classes:
+            biggan_classes += '-{}'.format(c)
+
+    # Create output dir for generated images
+    out_dir = osp.join('experiments', 'latent_codes', args.gan_type)
+    if args.gan_type == 'BigGAN':
+        out_dir += biggan_classes
+    if args.pool:
+        out_dir = osp.join(out_dir, args.pool)
+    else:
+        gan_type = args.gan_type
+        if args.gan_type == 'BigGAN':
+            gan_type += biggan_classes
+        out_dir = osp.join(out_dir, '{}_{}'.format(gan_type, args.num_samples))
+    os.makedirs(out_dir, exist_ok=True)
 
     # Set default tensor type
     if torch.cuda.is_available():
@@ -79,22 +101,6 @@ def main():
     else:
         torch.set_default_tensor_type('torch.FloatTensor')
     use_cuda = args.cuda and torch.cuda.is_available()
-
-    # Create output dir for generated images
-    out_dir = osp.join('experiments', 'latent_codes', args.gan_type)
-    if args.pool:
-        out_dir = osp.join(out_dir, args.pool)
-    else:
-        out_dir = osp.join(out_dir, '{}_{}'.format(args.gan_type, args.num_samples))
-
-    if args.gan_type == 'BigGAN':
-        if args.biggan_target_classes is None:
-            raise parser.error("In case of BigGAN, a list of classes needs to be determined.")
-        classes = 'classes'
-        for c in args.biggan_target_classes:
-            classes += '-{}'.format(c)
-        out_dir = osp.join(out_dir, classes)
-    os.makedirs(out_dir, exist_ok=True)
 
     # Build GAN generator model and load with pre-trained weights
     if args.verbose:
