@@ -35,6 +35,7 @@ if $tensorboard ; then
 fi
 
 CUDA_VISIBLE_DEVICES=${GPUS} python train.py $tb \
+                                             --multi-gpu \
                                              --gan-type=${gan_type} \
                                              --z-truncation=${z_truncation} \
                                              --stylegan2-resolution=${stylegan2_resolution} \
