@@ -119,6 +119,8 @@ def main():
     # Build GAN generator model and load with pre-trained weights
     print("#. Build GAN generator model G and load with pre-trained weights...")
     print("  \\__GAN type: {}".format(args.gan_type))
+    if args.z_truncation:
+        print("  \\__Input noise truncation: {}".format(args.z_truncation))
     print("  \\__Pre-trained weights: {}".format(
         GAN_WEIGHTS[args.gan_type]['weights'][args.stylegan2_resolution] if args.gan_type == 'StyleGAN2' else
         GAN_WEIGHTS[args.gan_type]['weights'][GAN_RESOLUTIONS[args.gan_type]]))
