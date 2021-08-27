@@ -5,6 +5,7 @@ GPUS="2,3"
 # === Experiment configuration ===
 gan_type="StyleGAN2"
 stylegan2_resolution=1024
+z_truncation=0.7
 learn_alphas=false
 learn_gammas=true
 num_support_sets=200
@@ -12,7 +13,7 @@ num_support_dipoles=512
 min_shift_magnitude=0.25
 max_shift_magnitude=0.45
 reconstructor_type="ResNet"
-batch_size=8
+batch_size=14
 max_iter=200000
 tensorboard=true
 
@@ -35,6 +36,7 @@ fi
 
 CUDA_VISIBLE_DEVICES=${GPUS} python train.py $tb \
                                              --gan-type=${gan_type} \
+                                             --z-truncation=${z_truncation} \
                                              --stylegan2-resolution=${stylegan2_resolution} \
                                              --stylegan2-w-shift \
                                              --reconstructor-type=${reconstructor_type} \
