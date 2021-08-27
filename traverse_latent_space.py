@@ -173,10 +173,15 @@ def main():
     # Check structure of `args.exp`
     if not osp.isdir(args.exp):
         raise NotADirectoryError("Invalid given directory: {}".format(args.exp))
-    args_json_file = osp.join(args.exp, 'args.json')
 
+    # -- args.json file (pre-trained model arguments)
+    args_json_file = osp.join(args.exp, 'args.json')
     if not osp.isfile(args_json_file):
         raise FileNotFoundError("File not found: {}".format(args_json_file))
+    args_json = ModelArgs(**json.load(open(args_json_file)))
+    gan_type = args_json.__dict__["gan_type"]
+
+    # -- models directory (support sets and reconstructor)
     models_dir = osp.join(args.exp, 'models')
     if not osp.isdir(models_dir):
         raise NotADirectoryError("Invalid models directory: {}".format(models_dir))
@@ -186,10 +191,6 @@ def main():
     reconstructor_model = osp.join(models_dir, 'reconstructor.pt')
     if not osp.isfile(reconstructor_model):
         raise FileNotFoundError("Reconstructor model file not found: {}".format(reconstructor_model))
-
-    # Read pre-trained model arguments
-    args_json = ModelArgs(**json.load(open(args_json_file)))
-    gan_type = args_json.__dict__["gan_type"]
 
     # Check given pool directory
     pool = osp.join('experiments', 'latent_codes', gan_type, args.pool)
