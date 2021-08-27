@@ -22,7 +22,7 @@ class DataParallelPassthrough(nn.DataParallel):
 
 
 class Trainer(object):
-    def __init__(self, params=None, exp_dir=None, eps=0.1):
+    def __init__(self, params=None, exp_dir=None):
         if params is None:
             raise ValueError("Cannot build a Trainer instance with empty params: params={}".format(params))
         else:
@@ -88,8 +88,6 @@ class Trainer(object):
             starting_iter = checkpoint_dict['iter']
             support_sets.load_state_dict(checkpoint_dict['support_sets'])
             reconstructor.load_state_dict(checkpoint_dict['reconstructor'])
-            # REVIEW: does it load the weights correctly?  -- It doesn't!
-            # reconstructor.load_state_dict(checkpoint_dict['reconstructor'], strict=False)
         return starting_iter
 
     def log_progress(self, iteration, mean_iter_time, elapsed_time, eta):
@@ -153,7 +151,7 @@ class Trainer(object):
             support_sets.train()
             reconstructor.train()
 
-        # Set directions_matrix optimizer
+        # Set support sets optimizer
         support_sets_optim = torch.optim.Adam(support_sets.parameters(), lr=self.params.support_set_lr)
 
         # Set shift predictor optimizer
@@ -185,7 +183,7 @@ class Trainer(object):
         t0 = time.time()
 
         # Start training
-        for iter in range(starting_iter, self.params.max_iter + 1):
+        for iteration in range(starting_iter, self.params.max_iter + 1):
 
             # Get current iteration's start time
             iter_t0 = time.time()
@@ -252,7 +250,7 @@ class Trainer(object):
             loss = self.params.lambda_cls * classification_loss + self.params.lambda_reg * regression_loss
             loss.backward()
 
-            # TODO: add comment
+            # Perform optimization step (parameter update)
             support_sets_optim.step()
             reconstructor_optim.step()
 
@@ -266,7 +264,7 @@ class Trainer(object):
             # Update tensorboard plots for training statistics
             if self.tensorboard:
                 for key, value in self.stat_tracker.get_means().items():
-                    self.tb_writer.add_scalar(key, value, iter)
+                    self.tb_writer.add_scalar(key, value, iteration)
 
             # Get time of completion of current iteration
             iter_t = time.time()
@@ -281,17 +279,17 @@ class Trainer(object):
             mean_iter_time = self.iter_times.mean()
 
             # Compute estimated time of experiment completion
-            eta = elapsed_time * ((self.params.max_iter - iter) / (iter - starting_iter + 1))
+            eta = elapsed_time * ((self.params.max_iter - iteration) / (iteration - starting_iter + 1))
 
             # Log progress in stdout
-            if iter % self.params.log_freq == 0:
-                self.log_progress(iter, mean_iter_time, elapsed_time, eta)
+            if iteration % self.params.log_freq == 0:
+                self.log_progress(iteration, mean_iter_time, elapsed_time, eta)
 
             # Save checkpoint model file and support_sets / reconstructor model state dicts after current iteration
-            if iter % self.params.ckp_freq == 0:
+            if iteration % self.params.ckp_freq == 0:
                 # Build checkpoint dict
                 checkpoint_dict = {
-                    'iter': iter,
+                    'iter': iteration,
                     'support_sets': support_sets.state_dict(),
                     'reconstructor': reconstructor.module.state_dict() if self.multi_gpu else reconstructor.state_dict()
                 }
@@ -301,9 +299,9 @@ class Trainer(object):
         # Get experiment's total elapsed time
         elapsed_time = time.time() - t0
 
-        # Save final directions_matrix model
-        directions_matrix_model_filename = osp.join(self.models_dir, 'support_sets.pt')
-        torch.save(support_sets.state_dict(), directions_matrix_model_filename)
+        # Save final support sets model
+        support_sets_model_filename = osp.join(self.models_dir, 'support_sets.pt')
+        torch.save(support_sets.state_dict(), support_sets_model_filename)
 
         # Save final shift predictor model
         reconstructor_model_filename = osp.join(self.models_dir, 'reconstructor.pt')
