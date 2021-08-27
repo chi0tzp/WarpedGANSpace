@@ -51,7 +51,8 @@ def main():
     """
     parser = argparse.ArgumentParser(description="Sample a pre-trained GAN latent space and generate images")
     parser.add_argument('-v', '--verbose', action='store_true', help="set verbose mode on")
-    parser.add_argument('-g', '--gan-type', type=str, choices=GAN_WEIGHTS.keys(), help='GAN generator model type')
+    parser.add_argument('-g', '--gan-type', type=str, required=True, choices=GAN_WEIGHTS.keys(),
+                        help='GAN generator model type')
     parser.add_argument('--z-truncation', type=float, help="set latent code sampling truncation parameter")
     parser.add_argument('--biggan-target-classes', nargs='+', type=int, help="list of classes for conditional BigGAN")
     parser.add_argument('--stylegan2-resolution', type=int, default=1024, choices=(256, 1024),
