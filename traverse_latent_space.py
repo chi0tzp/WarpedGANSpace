@@ -180,23 +180,48 @@ def main():
         raise FileNotFoundError("File not found: {}".format(args_json_file))
     args_json = ModelArgs(**json.load(open(args_json_file)))
     gan_type = args_json.__dict__["gan_type"]
+    if gan_type == 'BigGAN':
+        biggan_target_classes = ''
+        for c in args_json.__dict__["biggan_target_classes"]:
+            biggan_target_classes += '-{}'.format(c)
 
-    # -- models directory (support sets and reconstructor)
+    # -- models directory (support sets and reconstructor, final or checkpoint files)
     models_dir = osp.join(args.exp, 'models')
     if not osp.isdir(models_dir):
         raise NotADirectoryError("Invalid models directory: {}".format(models_dir))
+
+    # ---- Get all files of models directory
+    models_dir_files = [f for f in os.listdir(models_dir) if osp.isfile(osp.join(models_dir, f))]
+
+    # ---- Check for support sets file (final or checkpoint)
     support_sets_model = osp.join(models_dir, 'support_sets.pt')
     if not osp.isfile(support_sets_model):
-        raise FileNotFoundError("Support sets model file not found: {}".format(support_sets_model))
-    reconstructor_model = osp.join(models_dir, 'reconstructor.pt')
-    if not osp.isfile(reconstructor_model):
-        raise FileNotFoundError("Reconstructor model file not found: {}".format(reconstructor_model))
+        support_sets_checkpoint_files = []
+        for f in models_dir_files:
+            if 'support_sets-' in f:
+                support_sets_checkpoint_files.append(f)
+        support_sets_checkpoint_files.sort()
+        support_sets_model = osp.join(models_dir, support_sets_checkpoint_files[-1])
+
+    # ---- Check for reconstructor file (final or checkpoint)
+    # reconstructor_model = osp.join(models_dir, 'reconstructor.pt')
+    # if not osp.isfile(reconstructor_model):
+    #     reconstructor_checkpoint_files = []
+    #     for f in models_dir_files:
+    #         if 'reconstructor-' in f:
+    #             reconstructor_checkpoint_files.append(f)
+    #     reconstructor_checkpoint_files.sort()
+    #     reconstructor_model = osp.join(models_dir, reconstructor_checkpoint_files[-1])
 
     # Check given pool directory
-    pool = osp.join('experiments', 'latent_codes', gan_type, args.pool)
+    pool = osp.join('experiments', 'latent_codes')
+    if gan_type == 'BigGAN':
+        pool = osp.join(pool, gan_type + biggan_target_classes, args.pool)
+    else:
+        pool = osp.join(pool, gan_type, args.pool)
+
     if not osp.isdir(pool):
-        raise NotADirectoryError("Invalid pool directory: {} -- not found under experiments/latent_codes/{}/. "
-                                 "Please run sample_gan.py to create it.".format(args.pool, gan_type))
+        raise NotADirectoryError("Invalid pool directory: {} -- Please run sample_gan.py to create it.".format(pool))
 
     # Set default tensor type
     if torch.cuda.is_available():
@@ -293,10 +318,11 @@ def main():
     ## ============================================================================================================== ##
     if args.verbose:
         print("#. Traverse latent space...")
-        print("  \\__Experiment: {}".format(osp.basename(osp.abspath(args.exp))))
-        print("  \\__Shift steps: {}".format(2 * args.shift_steps))
-        print("  \\__Traversal length: {}".format(round(2 * args.shift_steps * args.eps, 3)))
-        print("  \\__Save results at: {}".format(out_dir))
+        print("  \\__Experiment       : {}".format(osp.basename(osp.abspath(args.exp))))
+        print("  \\__Shift magnitude  : {}".format(args.eps))
+        print("  \\__Shift steps      : {}".format(2 * args.shift_steps))
+        print("  \\__Traversal length : {}".format(round(2 * args.shift_steps * args.eps, 3)))
+        print("  \\__Save results at  : {}".format(out_dir))
 
     # Iterate over given latent codes
     for i in range(num_of_latent_codes):
