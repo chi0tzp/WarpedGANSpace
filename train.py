@@ -90,6 +90,7 @@ def main():
     parser.add_argument('--cuda', dest='cuda', action='store_true', help="use CUDA during training")
     parser.add_argument('--no-cuda', dest='cuda', action='store_false', help="do NOT use CUDA during training")
     parser.set_defaults(cuda=True)
+    # TODO: remove args.multi_gpu -- set it automatically based on torch.cuda.device_count()
     parser.add_argument('--multi-gpu', action='store_true', help="use data parallelism (multiple GPUs) during training")
     # ================================================================================================================ #
 
