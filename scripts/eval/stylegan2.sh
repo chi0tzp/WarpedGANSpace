@@ -1,8 +1,8 @@
 #!/bin/bash
 
 pool="StyleGAN2_6"
-eps=0.15
-shift_steps=16
+eps=0.075
+shift_steps=32
 batch_size=5
 
 declare -a EXPERIMENTS=("experiments/complete/StyleGAN2-1024-W-ResNet-K200-N512-LearnGammas-eps0.1_0.2")
