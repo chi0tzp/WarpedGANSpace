@@ -22,11 +22,13 @@ class DataParallelPassthrough(nn.DataParallel):
 
 
 class Trainer(object):
-    def __init__(self, params=None, exp_dir=None):
+    def __init__(self, params=None, exp_dir=None, use_cuda=False, multi_gpu=False):
         if params is None:
             raise ValueError("Cannot build a Trainer instance with empty params: params={}".format(params))
         else:
             self.params = params
+        self.use_cuda = use_cuda
+        self.multi_gpu = multi_gpu
 
         # Use TensorBoard
         self.tensorboard = self.params.tensorboard
@@ -68,10 +70,6 @@ class Trainer(object):
 
         # Set up training statistics tracker
         self.stat_tracker = TrainingStatTracker()
-
-        # CUDA
-        self.use_cuda = self.params.cuda and torch.cuda.is_available()
-        self.multi_gpu = self.params.multi_gpu
 
     def get_starting_iteration(self, support_sets, reconstructor):
         """Check if checkpoint file exists (under `self.models_dir`) and set starting iteration at the checkpoint

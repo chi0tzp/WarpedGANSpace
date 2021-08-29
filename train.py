@@ -21,7 +21,7 @@ def main():
         ===[ Support Sets (S) ]=========================================================================================
         -K, --num-support-sets     : set number of support sets; i.e., number of warping functions -- number of
                                      interpretable paths
-        -N, --num-support-dipoles  : set number of support dipoles per support set
+        -D, --num-support-dipoles  : set number of support dipoles per support set
         --learn-alphas             : learn RBF alpha params
         --learn-gammas             : learn RBF gamma params
 
@@ -47,7 +47,6 @@ def main():
         ===[ CUDA ]=====================================================================================================
         --cuda                     : use CUDA during training (default)
         --no-cuda                  : do NOT use CUDA during training
-        --multi-gpu                : use data parallelism (multiple GPUs) during training
         ================================================================================================================
     """
     parser = argparse.ArgumentParser(description="GANLatentSpaceRBFWarping -- Training script")
@@ -62,7 +61,7 @@ def main():
 
     # === Support Sets (S) ======================================================================== #
     parser.add_argument('-K', '--num-support-sets', type=int, help="set number of support sets (warping functions)")
-    parser.add_argument('-N', '--num-support-dipoles', type=int, help="set number of support dipoles per support set")
+    parser.add_argument('-D', '--num-support-dipoles', type=int, help="set number of support dipoles per support set")
     parser.add_argument('--learn-alphas', action='store_true', help='learn RBF alpha params')
     parser.add_argument('--learn-gammas', action='store_true', help='learn RBF gamma params')
     parser.add_argument('-g', '--gamma', type=float, help="set RBF gamma param; when --learn-gammas is set, this will "
@@ -90,8 +89,6 @@ def main():
     parser.add_argument('--cuda', dest='cuda', action='store_true', help="use CUDA during training")
     parser.add_argument('--no-cuda', dest='cuda', action='store_false', help="do NOT use CUDA during training")
     parser.set_defaults(cuda=True)
-    # TODO: remove args.multi_gpu -- set it automatically based on torch.cuda.device_count()
-    parser.add_argument('--multi-gpu', action='store_true', help="use data parallelism (multiple GPUs) during training")
     # ================================================================================================================ #
 
     # Parse given arguments
@@ -100,22 +97,21 @@ def main():
     # Create output dir and save current arguments
     exp_dir = create_exp_dir(args)
 
-    # Set default tensor type
+    # CUDA
+    use_cuda = False
+    multi_gpu = False
     if torch.cuda.is_available():
         if args.cuda:
+            use_cuda = True
             torch.set_default_tensor_type('torch.cuda.FloatTensor')
-            if args.multi_gpu and torch.cuda.device_count() < 2:
-                print("*** WARNING ***: Multiple GPUs (--multi-gpu) cannot be used in this machine due to insufficient "
-                      "number of available GPU devices.")
-                args.multi_gpu = False
-        if not args.cuda:
+            if torch.cuda.device_count() > 1:
+                multi_gpu = True
+        else:
             print("*** WARNING ***: It looks like you have a CUDA device, but aren't using CUDA.\n"
                   "                 Run with --cuda for optimal training speed.")
             torch.set_default_tensor_type('torch.FloatTensor')
-            args.multi_gpu = False
     else:
         torch.set_default_tensor_type('torch.FloatTensor')
-        args.multi_gpu = False
 
     # Build GAN generator model and load with pre-trained weights
     print("#. Build GAN generator model G and load with pre-trained weights...")
@@ -175,7 +171,7 @@ def main():
 
     # Set up trainer
     print("#. Experiment: {}".format(exp_dir))
-    trn = Trainer(params=args, exp_dir=exp_dir)
+    trn = Trainer(params=args, exp_dir=exp_dir, use_cuda=use_cuda, multi_gpu=multi_gpu)
 
     # Train
     trn.train(generator=G, support_sets=S, reconstructor=R)
