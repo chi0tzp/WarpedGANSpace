@@ -57,11 +57,11 @@ def create_exp_dir(args):
 
     Experiment's directory name format:
 
-        <gan_type>(-<stylegan2_resolution>)-<reconstructor_type>-K<num_support_sets>-N<num_support_dipoles>
-            (-LearnAlphas)(-LearnGammas)-eps<min_shift_magnitude>_<max_shift_magnitude>
+        <gan_type>(-<stylegan2_resolution>)-<reconstructor_type>-K<num_support_sets>-D<num_support_dipoles>
+            (-LearnAlphas)(-LearnGammas)-T<max_steps>_eps<eps>
     E.g.:
 
-        experiments/wip/ProgGAN-ResNet-K200-N32-LearnGammas-eps0.35_0.5
+        experiments/wip/ProgGAN-ResNet-K200-D32-LearnGammas-T5_eps0.1
 
     Args:
         args (argparse.Namespace): the namespace object returned by `parse_args()` for the current run
@@ -80,12 +80,12 @@ def create_exp_dir(args):
             biggan_classes += '{}'.format(c)
         exp_dir += '{}'.format(biggan_classes)
     exp_dir += "-{}".format(args.reconstructor_type)
-    exp_dir += "-K{}-N{}".format(args.num_support_sets, args.num_support_dipoles)
+    exp_dir += "-K{}-D{}".format(args.num_support_sets, args.num_support_dipoles)
     if args.learn_alphas:
         exp_dir += '-LearnAlphas'
     if args.learn_gammas:
         exp_dir += '-LearnGammas'
-    exp_dir += "-eps{}_{}".format(args.min_shift_magnitude, args.max_shift_magnitude)
+    exp_dir += "-T{}_eps{}".format(args.max_steps, args.eps)
 
     # Create output directory (wip)
     wip_dir = osp.join("experiments", "wip", exp_dir)

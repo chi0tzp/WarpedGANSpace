@@ -9,40 +9,42 @@ def main():
 
     Options:
         ===[ Pre-trained GAN Generator (G) ]============================================================================
-        --gan-type                 : set pre-trained GAN type
-        --z-truncation             : set latent code sampling truncation parameter. If set, latent codes will be sampled
-                                     from a standard Gaussian distribution truncated to the range [-args.z_truncation,
-                                     +args.z_truncation]
-        --biggan-target-classes    : set list of classes to use for conditional BigGAN (see BIGGAN_CLASSES in
-                                     lib/config.py). E.g., --biggan-target-classes 14 239.
-        --stylegan2-resolution     : set StyleGAN2 generator output images resolution:  256 or 1024 (default: 1024)
-        --stylegan2-w-shift        : search latent paths in w-space of StyleGAN2
+        --gan-type                : set pre-trained GAN type
+        --z-truncation            : set latent code sampling truncation parameter. If set, latent codes will be sampled
+                                    from a standard Gaussian distribution truncated to the range [-args.z_truncation,
+                                    +args.z_truncation]
+        --biggan-target-classes   : set list of classes to use for conditional BigGAN (see BIGGAN_CLASSES in
+                                    lib/config.py). E.g., --biggan-target-classes 14 239.
+        --stylegan2-resolution    : set StyleGAN2 generator output images resolution:  256 or 1024 (default: 1024)
+        --stylegan2-w-shift       : search latent paths in w-space of StyleGAN2
 
         ===[ Support Sets (S) ]=========================================================================================
-        -K, --num-support-sets     : set number of support sets; i.e., number of warping functions -- number of
-                                     interpretable paths
-        -D, --num-support-dipoles  : set number of support dipoles per support set
-        --learn-alphas             : learn RBF alpha params
-        --learn-gammas             : learn RBF gamma params
-
-        -g, --gamma                : set RBF gamma param (by default, gamma will be set to the inverse of the latent
-                                     space dimensionality)
-        --support-set-lr           : set learning rate for learning support sets
+        -K, --num-support-sets    : set number of support sets; i.e., number of warping functions -- number of
+                                    interpretable paths
+        -D, --num-support-dipoles : set number of support dipoles per support set
+        --learn-alphas            : learn RBF alpha params
+        --learn-gammas            : learn RBF gamma params
+        -g, --gamma               : set RBF gamma param (by default, gamma will be set to the inverse of the latent
+                                    space dimensionality)
+        --support-set-lr          : set learning rate for learning support sets
 
         ===[ Reconstructor (R) ]========================================================================================
-        --reconstructor-type       : set reconstructor network type
-        --min-shift-magnitude      : set minimum shift magnitude
-        --max-shift-magnitude      : set maximum shift magnitude
-        --reconstructor-lr         : set learning rate for reconstructor R optimization
+        --reconstructor-type      : set reconstructor network type
+        --reconstructor-lr        : set learning rate for reconstructor R optimization
 
+        ===[ Traversals ]===============================================================================================
+        -e, --eps                 : set shift step magnitude
+        -T, --max-steps           : set maximum number of shift steps performed at each training iteration -- the actual
+                                    number of (signed) steps at each iteration will be sampled from U{1,T}; thus, the
+                                    total length of shift at each iteration will be equal to T * eps.
         ===[ Training ]=================================================================================================
-        --max-iter                 : set maximum number of training iterations
-        --batch-size               : set training batch size
-        --lambda-cls               : classification loss weight
-        --lambda-reg               : regression loss weight
-        --log-freq                 : set number iterations per log
-        --ckp-freq                 : set number iterations per checkpoint model saving
-        --tensorboard              : use tensorboard
+        --max-iter                : set maximum number of training iterations
+        --batch-size              : set training batch size
+        --lambda-cls              : classification loss weight
+        --lambda-reg              : regression loss weight
+        --log-freq                : set number iterations per log
+        --ckp-freq                : set number iterations per checkpoint model saving
+        --tensorboard             : use tensorboard
 
         ===[ CUDA ]=====================================================================================================
         --cuda                     : use CUDA during training (default)
@@ -71,8 +73,13 @@ def main():
     # === Reconstructor (R) ========================================================================================== #
     parser.add_argument('--reconstructor-type', type=str, choices=RECONSTRUCTOR_TYPES, default='ResNet',
                         help='set reconstructor network type')
-    parser.add_argument('--min-shift-magnitude', type=float, default=0.25, help="set minimum shift magnitude")
-    parser.add_argument('--max-shift-magnitude', type=float, default=0.45, help="set shifts magnitude scale")
+    # === Traversals ================================================================================================= #
+    # -e, --eps                 : set shift step magnitude
+    # -T, --max-steps           : set maximum number of shift steps performed at each training iteration -- the actual
+    #                             number of (signed) steps at each iteration will be sampled from U{1,T}; thus, the
+    #                             total length of shift at each iteration will be equal to T * eps.
+    parser.add_argument('-e', '--eps', type=float, default=0.1, help="set shift step magnitude")
+    parser.add_argument('-T', '--max-steps', type=int, default=6, help="")
     parser.add_argument('--reconstructor-lr', type=float, default=1e-4,
                         help="set learning rate for reconstructor R optimization")
 

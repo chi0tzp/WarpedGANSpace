@@ -202,21 +202,24 @@ class Trainer(object):
             if self.use_cuda:
                 target_support_sets_indices = target_support_sets_indices.cuda()
 
-            # Sample shift magnitudes from uniform distributions
+            # REVIEW: Sample shift magnitudes from uniform distributions
             #   U[self.params.min_shift_magnitude, self.params.max_shift_magnitude], and
             #   U[-self.params.max_shift_magnitude, self.params.min_shift_magnitude]
-            # Create a pool of shift magnitudes of 2 * `self.params.batch_size` shifts (half negative, half positive)
-            # and sample `self.params.batch_size` of them
-            shift_magnitudes_pos = (self.params.min_shift_magnitude - self.params.max_shift_magnitude) * \
-                torch.rand(target_support_sets_indices.size()) + self.params.max_shift_magnitude
-            shift_magnitudes_neg = (self.params.min_shift_magnitude - self.params.max_shift_magnitude) * \
-                torch.rand(target_support_sets_indices.size()) - self.params.min_shift_magnitude
-            shift_magnitudes_pool = torch.cat((shift_magnitudes_neg, shift_magnitudes_pos))
+            #   Create a pool of shift magnitudes of 2 * `self.params.batch_size` shifts (half negative, half positive)
+            #   and sample `self.params.batch_size` of them
+            # shift_magnitudes_pos = torch.randint(low=1, high=self.params.max_steps,
+            #                                      size=target_support_sets_indices.size())
+            # shift_magnitudes_neg = torch.randint(low=-self.params.max_steps, high=-1,
+            #                                      size=target_support_sets_indices.size())
+            # shift_magnitudes_pool = torch.cat((shift_magnitudes_neg, shift_magnitudes_pos))
+            # shift_magnitudes_ids = torch.arange(len(shift_magnitudes_pool), dtype=torch.float)
+            # target_shift_magnitudes = shift_magnitudes_pool[torch.multinomial(input=shift_magnitudes_ids,
+            #                                                                   num_samples=self.params.batch_size,
+            #                                                                   replacement=False)]
+            # target_shift_magnitudes = self.params.eps * target_shift_magnitudes
 
-            shift_magnitudes_ids = torch.arange(len(shift_magnitudes_pool), dtype=torch.float)
-            target_shift_magnitudes = shift_magnitudes_pool[torch.multinomial(input=shift_magnitudes_ids,
-                                                                              num_samples=self.params.batch_size,
-                                                                              replacement=False)]
+            target_shift_magnitudes = torch.ones(self.params.batch_size) * self.params.eps
+
             if self.use_cuda:
                 target_shift_magnitudes = target_shift_magnitudes.cuda()
 
@@ -230,6 +233,12 @@ class Trainer(object):
 
             # Get shift vectors
             shift = target_shift_magnitudes.reshape(-1, 1) * support_sets(support_sets_mask, z)
+
+            # print("int(np.random.randint(low=1, high=self.params.max_steps, size=1)): {}".format(int(np.random.randint(low=1, high=self.params.max_steps, size=1))))
+            z_ = z.clone() + shift
+            for _ in range(int(np.random.randint(low=1, high=self.params.max_steps, size=1)) - 1):
+                shift += target_shift_magnitudes.reshape(-1, 1) * support_sets(support_sets_mask, z_)
+                z_ = z_ + shift
 
             # Generate images for latent codes z and shifted latent codes z + shift. In the case of StyleGAN2, when
             # `args.stylegan2_w_shift`, latent codes and shifts are considered in the W-space, even though we keep the
