@@ -2,6 +2,7 @@ import os
 import os.path as osp
 import argparse
 import torch
+import json
 from torch import nn
 from hashlib import sha1
 from torchvision.transforms import ToPILImage
@@ -30,9 +31,9 @@ class DataParallelPassthrough(nn.DataParallel):
 
 def main():
     """A script for sampling from a pre-trained GAN latent space and generating images. The generated images, along with
-     the corresponding latent code (in torch.Tensor format), will be stored under
+     the corresponding latent codes (in torch.Tensor format), will be stored under
         `experiments/latent_codes/<gan_type>/<pool>/`.
-    If no pool name is given, then <gan_type><num_samples>/ will be used instead.
+    If no pool name is given, then `<gan_type><num_samples>/` will be used instead.
 
     Options:
         -v, --verbose           : set verbose mode on
@@ -43,11 +44,11 @@ def main():
         --biggan-target-classes : set list of classes to use for conditional BigGAN (see BIGGAN_CLASSES in
                                   lib/config.py). E.g., --biggan-target-classes 14 239.
         --stylegan2-resolution  : set StyleGAN2 generator output images resolution (256 or 1024)
+        --stylegan2-w-space     : sample in StyleGAN2's W-space (use Z-space otherwise)
         --num-samples           : set the number of latent codes to sample for generating images
         --pool                  : set name of the latent codes/images pool.
         --cuda                  : use CUDA (default)
         --no-cuda               : do not use CUDA
-        --multi-gpu             : use data parallelism (multiple GPUs) when possible
     """
     parser = argparse.ArgumentParser(description="Sample a pre-trained GAN latent space and generate images")
     parser.add_argument('-v', '--verbose', action='store_true', help="set verbose mode on")
@@ -57,39 +58,38 @@ def main():
     parser.add_argument('--biggan-target-classes', nargs='+', type=int, help="list of classes for conditional BigGAN")
     parser.add_argument('--stylegan2-resolution', type=int, default=1024, choices=(256, 1024),
                         help="StyleGAN2 image resolution")
+    parser.add_argument('--stylegan2-w-space', action='store_true', help="sample in StyleGAN2's W-space")
     parser.add_argument('--num-samples', type=int, default=4, help="number of latent codes to sample")
-
     parser.add_argument('--pool', type=str, help="name of latent codes/images pool")
     parser.add_argument('--cuda', dest='cuda', action='store_true', help="use CUDA during training")
     parser.add_argument('--no-cuda', dest='cuda', action='store_false', help="do NOT use CUDA during training")
     parser.set_defaults(cuda=True)
-    parser.add_argument('--multi-gpu', action='store_true', help="use data parallelism (multiple GPUs)")
     # ================================================================================================================ #
 
     # Parse given arguments
     args = parser.parse_args()
 
-    # Get BigGAN classes
+    # Create output dir for generated images
+    out_dir = osp.join('experiments', 'latent_codes', args.gan_type)
     biggan_classes = None
     if args.gan_type == 'BigGAN':
+        # Get BigGAN classes
         if args.biggan_target_classes is None:
             raise parser.error("In case of BigGAN, a list of classes needs to be determined.")
         biggan_classes = ''
         for c in args.biggan_target_classes:
             biggan_classes += '-{}'.format(c)
-
-    # Create output dir for generated images
-    out_dir = osp.join('experiments', 'latent_codes', args.gan_type)
-    if args.gan_type == 'BigGAN':
         out_dir += biggan_classes
     if args.pool:
         out_dir = osp.join(out_dir, args.pool)
     else:
-        gan_type = args.gan_type
-        if args.gan_type == 'BigGAN':
-            gan_type += biggan_classes
-        out_dir = osp.join(out_dir, '{}_{}'.format(gan_type, args.num_samples))
+        out_dir = osp.join(out_dir, '{}_{}'.format(args.gan_type + biggan_classes if args.gan_type == 'BigGAN'
+                                                   else args.gan_type, args.num_samples))
     os.makedirs(out_dir, exist_ok=True)
+
+    # Save argument in json file
+    with open(osp.join(out_dir, 'args.json'), 'w') as args_json_file:
+        json.dump(args.__dict__, args_json_file)
 
     # Set default tensor type
     if torch.cuda.is_available():
@@ -123,7 +123,8 @@ def main():
     # -- StyleGAN2
     elif args.gan_type == 'StyleGAN2':
         G = build_stylegan2(resolution=args.stylegan2_resolution,
-                            pretrained_gan_weights=GAN_WEIGHTS[args.gan_type]['weights'][args.stylegan2_resolution])
+                            pretrained_gan_weights=GAN_WEIGHTS[args.gan_type]['weights'][args.stylegan2_resolution],
+                            w_space=args.stylegan2_w_space)
     # -- Spectrally Normalised GAN (SNGAN)
     else:
         G = build_sngan(pretrained_gan_weights=GAN_WEIGHTS[args.gan_type]['weights'][GAN_RESOLUTIONS[args.gan_type]],

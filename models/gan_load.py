@@ -135,25 +135,25 @@ def build_proggan(pretrained_gan_weights):
 ##                                                                                                                    ##
 ########################################################################################################################
 class StyleGAN2Wrapper(nn.Module):
-    def __init__(self, G, shift_in_w):
+    def __init__(self, G, w_space):
         super(StyleGAN2Wrapper, self).__init__()
         self.G = G
-        self.shift_in_w = shift_in_w
+        self.w_space = w_space
         self.dim_z = 512
-        self.dim_w = self.G.style_dim if shift_in_w else self.dim_z
+        self.dim_w = self.G.style_dim if self.w_space else self.dim_z
 
     def forward(self, z, shift=None):
-        if self.shift_in_w:
+        if self.w_space:
             w = self.G.get_latent(z)
             return self.G([w if shift is None else w + shift], input_is_latent=True)[0]
         else:
             return self.G([z if shift is None else z + shift], input_is_latent=False)[0]
 
 
-def build_stylegan2(pretrained_gan_weights, resolution, shift_in_w=False):
+def build_stylegan2(pretrained_gan_weights, resolution, w_space=False):
     # Build StyleGAN2 generator model
     G = StyleGAN2Generator(resolution, 512, 8)
     # Load pre-trained weights
     G.load_state_dict(torch.load(pretrained_gan_weights)['g_ema'], strict=False)
 
-    return StyleGAN2Wrapper(G, shift_in_w=shift_in_w)
+    return StyleGAN2Wrapper(G, w_space=w_space)
