@@ -57,7 +57,7 @@ def create_exp_dir(args):
 
     Experiment's directory name format:
 
-        <gan_type>(-<stylegan2_resolution>)-<reconstructor_type>-K<num_support_sets>-N<num_support_dipoles>
+        <gan_type>(-<stylegan2_resolution>)-<reconstructor_type>-K<num_support_sets>-D<num_support_dipoles>
             (-LearnAlphas)(-LearnGammas)-eps<min_shift_magnitude>_<max_shift_magnitude>
     E.g.:
 
@@ -80,7 +80,7 @@ def create_exp_dir(args):
             biggan_classes += '{}'.format(c)
         exp_dir += '{}'.format(biggan_classes)
     exp_dir += "-{}".format(args.reconstructor_type)
-    exp_dir += "-K{}-N{}".format(args.num_support_sets, args.num_support_dipoles)
+    exp_dir += "-K{}-D{}".format(args.num_support_sets, args.num_support_dipoles)
     if args.learn_alphas:
         exp_dir += '-LearnAlphas'
     if args.learn_gammas:
