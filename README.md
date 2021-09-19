@@ -41,10 +41,9 @@ This will create a directory `models/pretrained` with the following sub-director
 
 ```
 ./models/pretrained/
+├── generators/
 ├── arcface/
 ├── fairface/
-├── fanet/
-├── generators/
 ├── hopenet/
 └── sfd/
 ```
@@ -89,7 +88,7 @@ After a *WarpedGANSpace* is trained, the corresponding experiment's directory (i
 
 -  **Latent space traversals** For a given set of latent codes, we first generate images for all `K` paths (warping functions) and save the traversals (path latent codes and generated image sequences).
 - **Attribute space traversals** In the case of facial images (i.e., `ProgGAN` and `StyleGAN2`), for the latent traversals above, we calculate the corresponding attribute paths (i.e., facial expressions, pose, etc.).
-- **Interpretable paths discovery and ranking** TODO: +++
+- **Interpretable paths discovery and ranking** [TODO]
 
 Before calculating latent space traversals, you need to create a pool of latent codes/images for the corresponding GAN type. This can be done using `sample_gan.py`. The name of the pool can be passed using `--pool`; if left empty `<gan_type><num_samples>` will be used instead. The pool of latent codes/images will be stored under `experiments/latent_codes/<gan_type>/`.  We will be referring to it as a `POOL` for the rest of this document. 
 
@@ -107,13 +106,13 @@ Latent space traversals can be calculated using the script `traverse_latent_spac
 
 
 
-
-
-
-
 ### Attribute space traversals
 
+
+
 ### Interpretable paths discovery and ranking
+
+
 
 
 
