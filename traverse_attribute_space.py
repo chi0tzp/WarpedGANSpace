@@ -9,14 +9,11 @@ import json
 import torchvision
 from torchvision import transforms
 from lib import update_progress, update_stdout
-from lib import PathImages, IDComparator, SFDDetector, Hopenet, FANet
+from lib import PathImages, IDComparator, SFDDetector, Hopenet
 
-# CelebA attributes
-CELEBA_ATTRIBUTES = ('bald', 'gray_hair', 'brown_hair', 'black_hair', 'blond_hair', 'straight_hair', 'wavy_hair',
-                     'wearing_hat', 'arched_eyebrows', 'big_nose', 'pointy_nose', 'no_beard', 'narrow_eyes',
-                     'eyeglasses')
 
-# AUs dictionary
+# REVIEW: AUs dictionary (in DISFA?)
+# au_label = ['AU 1: ', 'AU 2 :', 'AU 4: ', 'AU 5: ', 'AU 6: ', 'AU 9: ', 'AU 12 :', 'AU 15: ', 'AU 17: ', 'AU 20: ',  'AU 25: ', 'AU 26: ']
 AUs = {
     "au_1": "Inner_Brow_Raiser",
     "au_2": "Outer_Brow_Raiser",
@@ -26,8 +23,11 @@ AUs = {
     "au_9": "Nose_Wrinkler",
     "au_12": "Lip_Corner_Puller",
     "au_17": "Chin_Raiser",
-    "au_25": "Lips_part"
+    "au_20": "Lip stretcher",
+    "au_25": "Lips_part",
+    "au_26": "Jaw Drop"
 }
+
 
 
 def crop_face(images, idx, bbox, padding=0.0):
@@ -198,75 +198,6 @@ def main():
                                                transforms.Normalize(mean=[0.485, 0.456, 0.406],
                                                                     std=[0.229, 0.224, 0.225])])
 
-    # Define a Facial Analysis Network (FANet) for predicting smile (trained on CelebA), 9 Action Units (trained on
-    # EmotioNet), and Arousal/Valence (trained on AffectNet)
-    fanet_1_pretrained = 'models/pretrained/fanet/fanet-96-resnet50-1024-celeba_smile+emotionet+affectnet-sgd.pth'
-    fanet_1_model = torch.load(fanet_1_pretrained, map_location=lambda storage, loc: storage)
-    fanet_1_model_state_dict = fanet_1_model['state_dict']
-    fanet_1_model_classification_head_ids = fanet_1_model['classification_head_ids']
-    fanet_1_model_regression_head_ids = fanet_1_model['regression_head_ids']
-    fanet_1_model_args = fanet_1_model['args']
-    fanet_1_model_basenet = fanet_1_model_args.basenet
-    fanet_1_model_face_dim = fanet_1_model_args.face_dim
-
-    fanet_1_model_fc_cfg = {
-        'cls': {'fc_1': {'units': fanet_1_model_args.fc_units, 'dropout': fanet_1_model_args.fc_dropout},
-                'fc_2': {'units': fanet_1_model_args.fc_units, 'dropout': fanet_1_model_args.fc_dropout}},
-        'reg': {'fc_1': {'units': fanet_1_model_args.fc_units, 'dropout': fanet_1_model_args.fc_dropout},
-                'fc_2': {'units': fanet_1_model_args.fc_units, 'dropout': fanet_1_model_args.fc_dropout}}}
-
-    fanet_1 = FANet(basenet=fanet_1_model_basenet,
-                    classification_head_ids=fanet_1_model_classification_head_ids,
-                    regression_head_ids=fanet_1_model_regression_head_ids,
-                    face_dim=fanet_1_model_face_dim,
-                    fc_cfg=fanet_1_model_fc_cfg,
-                    mode='eval')
-    fanet_1.load_state_dict(fanet_1_model_state_dict)
-    fanet_1.eval()
-
-    if use_cuda:
-        fanet_1 = fanet_1.cuda()
-
-    # Face transformations for CelebA's smile, EmotioNet's AUs, and AffectNet's Arousal/Valence
-    fanet_1_transformations = transforms.Compose([transforms.Resize(fanet_1_model_args.face_dim),
-                                                  transforms.CenterCrop(fanet_1_model_args.face_dim),
-                                                  transforms.Normalize(mean=[0.384, 0.463, 0.627],
-                                                                       std=[0.102, 0.099, 0.109])])
-
-    # Define a Facial Analysis Network (FANet) for predicting CelebA attributes
-    fanet_2_pretrained = 'models/pretrained/fanet/fanet-128-vgg16-512-celeba-sgd-CelebAFullImages.pth'
-    fanet_2_model = torch.load(fanet_2_pretrained, map_location=lambda storage, loc: storage)
-    fanet_2_model_state_dict = fanet_2_model['state_dict']
-    fanet_2_model_classification_head_ids = fanet_2_model['classification_head_ids']
-    fanet_2_model_regression_head_ids = fanet_2_model['regression_head_ids']
-    fanet_2_model_args = fanet_2_model['args']
-    fanet_2_model_basenet = fanet_2_model_args.basenet
-    fanet_2_model_face_dim = fanet_2_model_args.face_dim
-
-    fanet_2_model_fc_cfg = {
-        'cls': {'fc_1': {'units': fanet_2_model_args.fc_units, 'dropout': fanet_2_model_args.fc_dropout},
-                'fc_2': {'units': fanet_2_model_args.fc_units, 'dropout': fanet_2_model_args.fc_dropout}},
-        'reg': {'fc_1': {'units': fanet_2_model_args.fc_units, 'dropout': fanet_2_model_args.fc_dropout},
-                'fc_2': {'units': fanet_2_model_args.fc_units, 'dropout': fanet_2_model_args.fc_dropout}}}
-
-    fanet_2 = FANet(basenet=fanet_2_model_basenet,
-                    classification_head_ids=fanet_2_model_classification_head_ids,
-                    regression_head_ids=fanet_2_model_regression_head_ids,
-                    face_dim=fanet_2_model_face_dim,
-                    fc_cfg=fanet_2_model_fc_cfg,
-                    mode='eval')
-    fanet_2.load_state_dict(fanet_2_model_state_dict)
-    fanet_2.eval()
-
-    if use_cuda:
-        fanet_2 = fanet_2.cuda()
-
-    # Face transformations for CelebA attributes
-    fanet_2_transformations = transforms.Compose([transforms.Resize(fanet_2_model_args.face_dim),
-                                                  transforms.CenterCrop(fanet_2_model_args.face_dim),
-                                                  transforms.Normalize(mean=[0.384, 0.463, 0.627],
-                                                                       std=[0.102, 0.099, 0.109])])
-
     ####################################################################################################################
     ##                                                                                                                ##
     ##                                         [ Attribute Space Traversals ]                                         ##
@@ -323,9 +254,6 @@ def main():
             roll_np = np.zeros((num_of_paths, num_of_img_per_path))
             smile_np = np.zeros((num_of_paths, num_of_img_per_path))
             aus_np = np.zeros((len(AUs), num_of_paths, num_of_img_per_path))
-            arousal_np = np.zeros((num_of_paths, num_of_img_per_path))
-            valence_np = np.zeros((num_of_paths, num_of_img_per_path))
-            celeba_np = np.zeros((len(CELEBA_ATTRIBUTES), num_of_paths, num_of_img_per_path))
 
             for d in range(num_of_paths):
                 if args.verbose:
@@ -486,68 +414,49 @@ def main():
 
                 ########################################################################################################
                 ##                                                                                                    ##
-                ##                [ CelebA-Smile / EmotioNet-ActionUnits / AffectNet Arousal-Valence ]                ##
+                ##                [ TODO: Action Units ]                ##
                 ##                                                                                                    ##
                 ########################################################################################################
-                cropped_faces = torch.zeros(len(detected_faces), 3,
-                                            fanet_1_model_args.face_dim,
-                                            fanet_1_model_args.face_dim)
-                for t in range(len(detected_faces)):
-                    cropped_faces[t] = fanet_1_transformations(crop_face(images=path_images_tensor,
-                                                                         idx=t,
-                                                                         bbox=detected_faces[t][0][:-1]
-                                                                         if len(detected_faces[t]) > 0
-                                                                         else [0, 0, 256, 256]).div(255.0))
-                if use_cuda:
-                    cropped_faces = cropped_faces.cuda()
-
-                with torch.no_grad():
-                    outputs = fanet_1(x=cropped_faces,
-                                      head_ids=fanet_1_model_classification_head_ids + fanet_1_model_regression_head_ids)
-
-                # Smile (CelebA)
-                scores = outputs[0].data.cpu().numpy().tolist()
-                smiling_scores = [item[0] for item in scores]
-                smile_dict.update({d: smiling_scores})
-                smile_np[d] = np.array(smiling_scores)
-
-                # Action Units (EmotioNet)
-                aus_list = []
-                for c in range(1, len(fanet_1_model_classification_head_ids)):
-                    scores = outputs[c].data.cpu().numpy().tolist()
-                    au_scores = [item[0] for item in scores]
-                    aus_list.append(au_scores)
-                    aus_np[c - 1, d, :] = np.array(au_scores)
-                au_dict.update({d: aus_list})
-
-                # Arousal/Valence (AffectNet)
-                scores = outputs[len(fanet_1_model_classification_head_ids) + 0].data.cpu().numpy().tolist()
-                arousal_scores = [item[0] for item in scores]
-                arousal_np[d] = np.array(arousal_scores)
-                scores = outputs[len(fanet_1_model_classification_head_ids) + 1].data.cpu().numpy().tolist()
-                valence_scores = [item[0] for item in scores]
-                valence_np[d] = np.array(valence_scores)
-                av_dict.update({d: [arousal_scores, valence_scores]})
-                ########################################################################################################
-
-                ########################################################################################################
-                ##                                                                                                    ##
-                ##                                        [ CelebA Attributes ]                                       ##
-                ##                                                                                                    ##
-                ########################################################################################################
-                with torch.no_grad():
-                    outputs = fanet_2(x=fanet_2_transformations(path_images_tensor).div(255.0),
-                                      head_ids=fanet_2_model_classification_head_ids + fanet_2_model_regression_head_ids)
-
-                # CelebA attributes
-                celeba_attributes_list = []
-                for c in range(len(fanet_2_model_classification_head_ids)):
-                    scores = outputs[c].data.cpu().numpy().tolist()
-                    celeba_attributes_scores = [item[0] for item in scores]
-                    celeba_attributes_list.append(celeba_attributes_scores)
-                    celeba_np[c - 1, d, :] = np.array(celeba_attributes_scores)
-                celeba_dict.update({d: celeba_attributes_list})
-                ########################################################################################################
+                # cropped_faces = torch.zeros(len(detected_faces), 3,
+                #                             fanet_1_model_args.face_dim,
+                #                             fanet_1_model_args.face_dim)
+                # for t in range(len(detected_faces)):
+                #     cropped_faces[t] = fanet_1_transformations(crop_face(images=path_images_tensor,
+                #                                                          idx=t,
+                #                                                          bbox=detected_faces[t][0][:-1]
+                #                                                          if len(detected_faces[t]) > 0
+                #                                                          else [0, 0, 256, 256]).div(255.0))
+                # if use_cuda:
+                #     cropped_faces = cropped_faces.cuda()
+                #
+                # with torch.no_grad():
+                #     outputs = fanet_1(x=cropped_faces,
+                #                       head_ids=fanet_1_model_classification_head_ids + fanet_1_model_regression_head_ids)
+                #
+                # # Smile (CelebA)
+                # scores = outputs[0].data.cpu().numpy().tolist()
+                # smiling_scores = [item[0] for item in scores]
+                # smile_dict.update({d: smiling_scores})
+                # smile_np[d] = np.array(smiling_scores)
+                #
+                # # Action Units (EmotioNet)
+                # aus_list = []
+                # for c in range(1, len(fanet_1_model_classification_head_ids)):
+                #     scores = outputs[c].data.cpu().numpy().tolist()
+                #     au_scores = [item[0] for item in scores]
+                #     aus_list.append(au_scores)
+                #     aus_np[c - 1, d, :] = np.array(au_scores)
+                # au_dict.update({d: aus_list})
+                #
+                # # Arousal/Valence (AffectNet)
+                # scores = outputs[len(fanet_1_model_classification_head_ids) + 0].data.cpu().numpy().tolist()
+                # arousal_scores = [item[0] for item in scores]
+                # arousal_np[d] = np.array(arousal_scores)
+                # scores = outputs[len(fanet_1_model_classification_head_ids) + 1].data.cpu().numpy().tolist()
+                # valence_scores = [item[0] for item in scores]
+                # valence_np[d] = np.array(valence_scores)
+                # av_dict.update({d: [arousal_scores, valence_scores]})
+                # ########################################################################################################
 
                 # Empty CUDA cache
                 if use_cuda:
@@ -605,18 +514,6 @@ def main():
                 json.dump(au_dict, out)
             for t, k in enumerate(AUs.keys()):
                 np.save(osp.join(np_files_dir, '{}_{}.npy'.format(k, AUs[k])), aus_np[t, :])
-
-            # Save `av_dict` in json format and `arousal_np` and `valence_np` in numpy array format
-            with open(osp.join(json_files_dir, 'av.json'), 'w') as out:
-                json.dump(av_dict, out)
-            np.save(osp.join(np_files_dir, 'arousal.npy'), arousal_np)
-            np.save(osp.join(np_files_dir, 'valence.npy'), valence_np)
-
-            # Save `celeba_dict` in json format and celeba attributes in numpy array format
-            with open(osp.join(json_files_dir, 'celeba.json'), 'w') as out:
-                json.dump(celeba_dict, out)
-            for t in range(len(CELEBA_ATTRIBUTES)):
-                np.save(osp.join(np_files_dir, '{}.npy'.format(CELEBA_ATTRIBUTES[t])), celeba_np[t, :])
 
     if args.verbose:
         update_stdout(1)
