@@ -1,7 +1,6 @@
-
+# WarpedGANSpace: Finding non-linear RBF paths in GAN latent space
 
 Authors official PyTorch implementation of the **WarpedGANSpace: Finding non-linear RBF paths in GAN latent space (ICCV 2021)**. If you use this code for your research, please [cite](#citation) our paper.
-
 
 
 ## Overview
@@ -88,11 +87,11 @@ After a *WarpedGANSpace* is trained, the corresponding experiment's directory (i
 
 -  **Latent space traversals** For a given set of latent codes, we first generate images for all `K` paths (warping functions) and save the traversals (path latent codes and generated image sequences).
 - **Attribute space traversals** In the case of facial images (i.e., `ProgGAN` and `StyleGAN2`), for the latent traversals above, we calculate the corresponding attribute paths (i.e., facial expressions, pose, etc.).
-- **Interpretable paths discovery and ranking** [TODO]
+- **Interpretable paths discovery and ranking** [*To Appear Soon*]
 
 Before calculating latent space traversals, you need to create a pool of latent codes/images for the corresponding GAN type. This can be done using `sample_gan.py`. The name of the pool can be passed using `--pool`; if left empty `<gan_type><num_samples>` will be used instead. The pool of latent codes/images will be stored under `experiments/latent_codes/<gan_type>/`.  We will be referring to it as a `POOL` for the rest of this document. 
 
-For example, the following command will create a pool named `ProgGAN4` under `experiments/latent_codes/ProgGAN/`:
+For example, the following command will create a pool named `ProgGAN_4` under `experiments/latent_codes/ProgGAN/`:
 
 ```
 python sample_gan.py -v --gan-type=ProgGAN --num-samples=4
@@ -104,22 +103,28 @@ python sample_gan.py -v --gan-type=ProgGAN --num-samples=4
 
 Latent space traversals can be calculated using the script `traverse_latent_space.py` (please check its basic usage by running `traverse_latent_space.py -h`) for a given model and a given `POOL`. 
 
-
+For examples, +++
 
 ### Attribute space traversals
 
-
+TODO: +++
 
 ### Interpretable paths discovery and ranking
 
+[*To Appear Soon*]
 
 
 
 
+## Results
 
-## Examples
+### SNGAN (MNIST, AnimeFaces)
 
-TODO
+### BigGAN (ImageNet)
+
+### ProgGAN (CelebA)
+
+### StyleGAN2 (FFHQ)
 
 
 
