@@ -7,11 +7,11 @@ learn_alphas=false
 learn_gammas=true
 num_support_sets=200
 num_support_dipoles=512
-min_shift_magnitude=0.15
-max_shift_magnitude=0.25
+min_shift_magnitude=0.1
+max_shift_magnitude=0.2
 reconstructor_type="ResNet"
 batch_size=8
-max_iter=200000
+max_iter=150000
 tensorboard=true
 # ================================
 
