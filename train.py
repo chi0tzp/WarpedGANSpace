@@ -41,14 +41,14 @@ def main():
         --lambda-reg               : regression loss weight
         --log-freq                 : set number iterations per log
         --ckp-freq                 : set number iterations per checkpoint model saving
-        --tensorboard              : use tensorboard
+        --tensorboard              : use TensorBoard
 
         ===[ CUDA ]=====================================================================================================
         --cuda                     : use CUDA during training (default)
         --no-cuda                  : do NOT use CUDA during training
         ================================================================================================================
     """
-    parser = argparse.ArgumentParser(description="GANLatentSpaceRBFWarping -- Training script")
+    parser = argparse.ArgumentParser(description="WarpedGANSpace training script")
 
     # === Pre-trained GAN Generator (G) ============================================================================== #
     parser.add_argument('--gan-type', type=str, choices=GAN_WEIGHTS.keys(), help='set GAN generator model type')

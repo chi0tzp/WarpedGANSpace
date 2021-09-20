@@ -58,7 +58,7 @@ def build_gan(gan_type, target_classes, stylegan2_resolution, stylegan2_w_space,
     if use_cuda:
         G = G.cuda()
 
-    # Parallelize GAN generator model into multiple GPUs, if available and `args.multi_gpu=True`.
+    # Parallelize GAN generator model into multiple GPUs if possible
     if multi_gpu:
         G = DataParallelPassthrough(G)
 
@@ -112,10 +112,11 @@ def get_concat_h(img_file_orig,
 
 
 def main():
-    """A script for traversing the latent space of a pre-trained GAN generator through paths defined by the warpings of
-    a set of support vectors, or by linear pre-trained [1] or random directions. Latent codes are either sampled
-    randomly or they are pooled from a pre-defined collection via the `--pool` argument. The generated images are stored
-    under `results/` directory.
+    """WarpedGANSpace -- Latent space traversal script.
+
+    A script for traversing the latent space of a pre-trained GAN generator through paths defined by the warpings of
+    a set of pre-trained support vectors. Latent codes are drawn from a pre-defined collection via the `--pool`
+    argument. The generated images are stored under `results/` directory.
 
     Options:
         ================================================================================================================
@@ -141,10 +142,9 @@ def main():
         ================================================================================================================
         --cuda        : use CUDA (default)
         --no-cuda     : do not use CUDA
-        --multi-gpu   : use data parallelism (multiple GPUs) when possible
         ================================================================================================================
     """
-    parser = argparse.ArgumentParser(description="Generate transformed images given a pre-trained GAN generator")
+    parser = argparse.ArgumentParser(description="WarpedGANSpace latent space traversal script")
     parser.add_argument('-v', '--verbose', action='store_true', help="set verbose mode on")
     # ================================================================================================================ #
     parser.add_argument('--exp', type=str, required=True, help="set experiment's model dir (created by `train.py`)")
@@ -152,7 +152,7 @@ def main():
                                                                 "(created by `sample_gan.py`)")
     parser.add_argument('--shift-steps', type=int, default=16, help="set number of shifts per positive/negative path "
                                                                     "direction")
-    parser.add_argument('--eps', type=float, default=0.5, help="set shift magnitude")
+    parser.add_argument('--eps', type=float, default=0.2, help="set shift step magnitude")
     parser.add_argument('--path-step', type=int, default=1, help="TODO")
     parser.add_argument('--batch-size', type=int, help="set generator batch size")
     parser.add_argument('--img-size', type=int, default=256, help="set image resolution")
@@ -164,7 +164,6 @@ def main():
     parser.add_argument('--cuda', dest='cuda', action='store_true', help="use CUDA during training")
     parser.add_argument('--no-cuda', dest='cuda', action='store_false', help="do NOT use CUDA during training")
     parser.set_defaults(cuda=True)
-    parser.add_argument('--multi-gpu', action='store_true', help="use data parallelism (multiple GPUs)")
     # ================================================================================================================ #
 
     # Parse given arguments
@@ -222,23 +221,21 @@ def main():
     if not osp.isdir(pool):
         raise NotADirectoryError("Invalid pool directory: {} -- Please run sample_gan.py to create it.".format(pool))
 
-    # Set default tensor type
+    # CUDA
+    use_cuda = False
+    multi_gpu = False
     if torch.cuda.is_available():
         if args.cuda:
+            use_cuda = True
             torch.set_default_tensor_type('torch.cuda.FloatTensor')
-            if args.multi_gpu and torch.cuda.device_count() < 2:
-                print("*** WARNING ***: Multiple GPUs (--multi-gpu) cannot be used in this machine due to insufficient "
-                      "number of available GPU devices.")
-                args.multi_gpu = False
-        if not args.cuda:
+            if torch.cuda.device_count() > 1:
+                multi_gpu = True
+        else:
             print("*** WARNING ***: It looks like you have a CUDA device, but aren't using CUDA.\n"
                   "                 Run with --cuda for optimal training speed.")
             torch.set_default_tensor_type('torch.FloatTensor')
-            args.multi_gpu = False
     else:
         torch.set_default_tensor_type('torch.FloatTensor')
-        args.multi_gpu = False
-    use_cuda = args.cuda and torch.cuda.is_available()
 
     # Build GAN generator model and load with pre-trained weights
     if args.verbose:
@@ -253,8 +250,8 @@ def main():
                   stylegan2_resolution=args_json.__dict__["stylegan2_resolution"],
                   stylegan2_w_space=args_json.__dict__["stylegan2_w_space"],
                   use_cuda=use_cuda,
-                  multi_gpu=args.multi_gpu).eval()
-    
+                  multi_gpu=multi_gpu).eval()
+
     # Build support sets model S
     if args.verbose:
         print("#. Build support sets model S...")
