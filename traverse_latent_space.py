@@ -180,10 +180,6 @@ def main():
         raise FileNotFoundError("File not found: {}".format(args_json_file))
     args_json = ModelArgs(**json.load(open(args_json_file)))
     gan_type = args_json.__dict__["gan_type"]
-    if gan_type == 'BigGAN':
-        biggan_target_classes = ''
-        for c in args_json.__dict__["biggan_target_classes"]:
-            biggan_target_classes += '-{}'.format(c)
 
     # -- models directory (support sets and reconstructor, final or checkpoint files)
     models_dir = osp.join(args.exp, 'models')
@@ -216,6 +212,9 @@ def main():
     # Check given pool directory
     pool = osp.join('experiments', 'latent_codes')
     if gan_type == 'BigGAN':
+        biggan_target_classes = ''
+        for c in args_json.__dict__["biggan_target_classes"]:
+            biggan_target_classes += '-{}'.format(c)
         pool = osp.join(pool, gan_type + biggan_target_classes, args.pool)
     else:
         pool = osp.join(pool, gan_type, args.pool)
@@ -252,10 +251,10 @@ def main():
     G = build_gan(gan_type=gan_type,
                   target_classes=args_json.__dict__["biggan_target_classes"],
                   stylegan2_resolution=args_json.__dict__["stylegan2_resolution"],
-                  stylegan2_w_space=args_json.__dict__["stylegan2_w_shift"],  # TODO: <-- Change to `stylegan2_w_shift`
+                  stylegan2_w_space=args_json.__dict__["stylegan2_w_space"],
                   use_cuda=use_cuda,
                   multi_gpu=args.multi_gpu).eval()
-
+    
     # Build support sets model S
     if args.verbose:
         print("#. Build support sets model S...")
