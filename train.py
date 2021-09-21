@@ -16,7 +16,7 @@ def main():
         --biggan-target-classes    : set list of classes to use for conditional BigGAN (see BIGGAN_CLASSES in
                                      lib/config.py). E.g., --biggan-target-classes 14 239.
         --stylegan2-resolution     : set StyleGAN2 generator output images resolution:  256 or 1024 (default: 1024)
-        --stylegan2-w-shift        : search latent paths in StyleGAN2's W-space (otherwise, look in Z-space)
+        --stylegan2-w-space        : search latent paths in StyleGAN2's W-space (otherwise, look in Z-space)
 
         ===[ Support Sets (S) ]=========================================================================================
         -K, --num-support-sets     : set number of support sets; i.e., number of warping functions -- number of
