@@ -103,11 +103,9 @@ python sample_gan.py -v --gan-type=ProgGAN --num-samples=4
 
 Latent space traversals can be calculated using the script `traverse_latent_space.py` (please check its basic usage by running `traverse_latent_space.py -h`) for a given model and a given `POOL`. 
 
-For examples, +++
-
 ### Attribute space traversals
 
-TODO: +++
+[*To Appear Soon*]
 
 ### Interpretable paths discovery and ranking
 
@@ -115,16 +113,15 @@ TODO: +++
 
 
 
+<!-- ## Results -->
 
-## Results
+<!--### SNGAN (MNIST, AnimeFaces)-->
 
-### SNGAN (MNIST, AnimeFaces)
+<!--### BigGAN (ImageNet)-->
 
-### BigGAN (ImageNet)
+<!--### ProgGAN (CelebA)-->
 
-### ProgGAN (CelebA)
-
-### StyleGAN2 (FFHQ)
+<!--### StyleGAN2 (FFHQ)-->
 
 
 
