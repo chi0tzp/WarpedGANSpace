@@ -1,6 +1,6 @@
 # WarpedGANSpace: Finding non-linear RBF paths in GAN latent space
 
-Authors official PyTorch implementation of the **WarpedGANSpace: Finding non-linear RBF paths in GAN latent space (ICCV 2021)**. If you use this code for your research, please [cite](#citation) our paper.
+Authors official PyTorch implementation of the **[WarpedGANSpace: Finding non-linear RBF paths in GAN latent space (ICCV 2021)](https://arxiv.org/abs/2109.13357)**. If you use this code for your research, please [cite](#citation) our paper.
 
 
 ## Overview
