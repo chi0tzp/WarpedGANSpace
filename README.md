@@ -1,18 +1,28 @@
 # WarpedGANSpace: Finding non-linear RBF paths in GAN latent space
 
-Authors official PyTorch implementation of the **[WarpedGANSpace: Finding non-linear RBF paths in GAN latent space (ICCV 2021)](https://arxiv.org/abs/2109.13357)**. If you use this code for your research, please [cite](#citation) our paper.
-
+Authors official PyTorch implementation of the **[WarpedGANSpace: Finding non-linear RBF paths in GAN latent space (ICCV 2021)](https://arxiv.org/abs/2109.13357)**. If you use this code for your research, please [**cite**](#citation) our paper.
 
 ## Overview
+
+In this work, we try to discover non-linear interpretable paths in GAN latent space. For doing so, we model non-linear paths using RBF-based *warping functions*, which by warping the latent space, endow it with vector fields (their gradients).  We use the latter to traverse the latent space across the paths determined by the aforementioned vector fields for any given latent code.
+
+<p align="center">
+<img src="./figs/latent_space_warping.svg" alt="WarpedGANSpace Overview"/>
+</p>
+
+
+Each warping function is defined by a set of *N* support vectors (a "support set") and its gradient is given analytically as shown above. For a given warping function *f<sup>k</sup>* and a given latent code **z**,  we traverse the latent space as illustrated below: 
+
+<p align="center">
+<img src="./figs/interpretable_path.svg" alt="Non-linear interpretable path"/>
+</p>
+Each warping function gives rise to a family of non-linear paths. We learn a set of such warping functions (implemented by the *Warping Network*), i.e., a set of such non-linear path families, so as they are distinguishable to each other; that is, the image transformations that they produce should be easily distinguishable be a discriminator network (the *Reconstructor*). An overview of the method is given below.
 
 <p align="center">
 <img src="./figs/overview.svg" alt="WarpedGANSpace Overview"/>
 </p>
 
 
-<p align="center">
-<img src="./figs/interpretable_path.svg" alt="Non-linear interpretable path"/>
-</p>
 
 
 ## Installation
