@@ -132,7 +132,7 @@ def main():
                         That is, the total number of shifts applied to each latent code will be equal to
                         2 * args.shift_steps.
         --eps         : set shift step magnitude for generating G(z'), where z' = z +/- eps * direction.
-        --path-step   : set path step (after how many steps to generate images)
+        --shift-leap  : set path shift leap (after how many steps to generate images)
         --batch-size  : generator batch size
         --img-size    : image size
         --img-quality : JPEG image quality (max 95)
@@ -153,7 +153,8 @@ def main():
     parser.add_argument('--shift-steps', type=int, default=16, help="set number of shifts per positive/negative path "
                                                                     "direction")
     parser.add_argument('--eps', type=float, default=0.2, help="set shift step magnitude")
-    parser.add_argument('--path-step', type=int, default=1, help="TODO")
+    parser.add_argument('--shift-leap', type=int, default=1,
+                        help="set path shift leap (after how many steps to generate images)")
     parser.add_argument('--batch-size', type=int, help="set generator batch size")
     parser.add_argument('--img-size', type=int, default=256, help="set image resolution")
     parser.add_argument('--img-quality', type=int, default=75, help="set JPEG image quality")
@@ -384,7 +385,7 @@ def main():
                 z = z + shift
 
                 # Store latent codes and shifts
-                if cnt == args.path_step:
+                if cnt == args.shift_leap:
                     current_path_latent_shifts.append(shift)
                     current_path_latent_codes.append(z)
                     cnt = 0
@@ -406,7 +407,7 @@ def main():
                 # Update z
                 z = z + shift
                 # Store latent codes and shifts
-                if cnt == args.path_step:
+                if cnt == args.shift_leap:
                     current_path_latent_shifts = [shift] + current_path_latent_shifts
                     current_path_latent_codes = [z] + current_path_latent_codes
                     cnt = 0
