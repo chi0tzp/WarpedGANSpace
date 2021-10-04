@@ -5,7 +5,7 @@ import hashlib
 import tarfile
 import time
 import urllib.request
-from lib import GAN_WEIGHTS, SFD, ARCFACE, FAIRFACE, HOPENET, FANET
+from lib import GAN_WEIGHTS, SFD, ARCFACE, FAIRFACE, HOPENET, AUDET
 
 
 def reporthook(count, block_size, total_size):
@@ -58,6 +58,7 @@ def main():
         -- ArcFace [11]
         -- FairFace [12]
         -- Hopenet [13]
+        -- AU detector [14] for 12 DISFA [15] Action Units
 
     [1] Miyato, T., Kataoka, T., Koyama, M., and Yoshida, Y. Spectral normalization for generative adversarial networks.
         In International Conference on Learning Representations, 2018.
@@ -98,6 +99,12 @@ def main():
     [13] Doosti, Bardia, et al. "Hope-net: A graph-based model for hand-object pose estimation." Proceedings of the
          IEEE/CVF Conference on Computer Vision and Pattern Recognition. 2020.
 
+    [14] Ntinou, Ioanna, et al. "A transfer learning approach to heatmap regression for action unit intensity
+        estimation." IEEE Transactions on Affective Computing (2021).
+
+    [15] Mavadati, S. Mohammad, et al. "DISFA: A spontaneous facial action intensity database." IEEE Transactions on
+         Affective Computing 4.2 (2013): 151-160.
+
     """
     # Create pre-trained models root directory
     pretrained_root = osp.join('models', 'pretrained')
@@ -128,9 +135,9 @@ def main():
     print("  \\__.Hopenet")
     download(src=HOPENET[0], sha256sum=HOPENET[1], dest=pretrained_root)
 
-    print("#. Download pre-trained FANet model...")
+    print("#. Download pre-trained AU detector model...")
     print("  \\__.FANet")
-    download(src=FANET[0], sha256sum=FANET[1], dest=pretrained_root)
+    download(src=AUDET[0], sha256sum=AUDET[1], dest=pretrained_root)
 
 
 if __name__ == '__main__':
