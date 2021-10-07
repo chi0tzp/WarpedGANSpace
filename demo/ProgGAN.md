@@ -1,3 +1,3 @@
-# ProgGAN pre-trained on CelebA-HQ
+# ProgGAN pretrained on CelebA-HQ
 
  

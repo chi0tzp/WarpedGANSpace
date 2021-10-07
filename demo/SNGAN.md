@@ -1,3 +1,3 @@
-# SN-GAN pre-trained on MNIST
+# SN-GAN pretrained on MNIST/AnimeFaces
 
  

@@ -1,3 +1,3 @@
-# StyleGAN2 pre-trained on FFHQ
+# StyleGAN2 pretrained on FFHQ
 
  
