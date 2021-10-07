@@ -152,15 +152,21 @@ This script needs a `TRAVERSAL_CONFIG` found under `experiments/complete/EXP_DIR
 
 
 
-<!-- ## Results -->
+## Qualitative results
 
-<!--### SNGAN (MNIST, AnimeFaces)-->
+### [SNGAN (MNIST, AnimeFaces)](demo/SNGAN.md)
 
-<!--### BigGAN (ImageNet)-->
+### [BigGAN (ImageNet)](demo/BigGAN.md)
 
-<!--### ProgGAN (CelebA)-->
+### [ProgGAN (CelebA)](demo/ProgGAN.md)
 
-<!--### StyleGAN2 (FFHQ)-->
+### [StyleGAN2 (FFHQ)](demo/StyleGAN2.md)
+
+
+
+## Demo
+
+[*To Appear soon*]
 
 
 
