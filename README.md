@@ -46,21 +46,32 @@ $ source warped-gan-space/bin/activate
 
 ## Prerequisite pretrained models
 
-Download the prerequisite pretrained models (i.e., GAN generators, face detector, pose estimator, etc.) as follows:
+Download the prerequisite pretrained models (i.e., GAN generators, face detector, pose estimator, and other attribute detectors), as well as pre-trained WarpedGANSpace models (optionally, by passing `-m`), as follows:
 
 ```bash
 $ python download.py	
 ```
 
-This will create a directory `models/pretrained` with the following sub-directories (~3.2GiB):
+This will create a directory `models/pretrained` with the following sub-directories (~2.0 GiB):
 
 ```
 ./models/pretrained/
+├── au_detector/
 ├── generators/
 ├── arcface/
 ├── fairface/
 ├── hopenet/
 └── sfd/
+```
+
+as well as, a directory `experiments/complete/` (if not already created by the user upon an experiment's completion) for downloading the WarpedGANSpace pretrained models (if selected) with the following sub-directories (~??? GiB):
+
+```
+.experiments/complete/
+├── SNGAN_AnimeFaces-LeNet-K64-D128-LearnGammas-eps0.25_0.35/
+├── SNGAN_MNIST-LeNet-K64-D128-LearnGammas-eps0.15_0.25/
+├── BigGAN-239-ResNet-K120-D256-LearnGammas-eps0.15_0.25/
+└── ProgGAN-ResNet-K200-D512-LearnGammas-eps0.1_0.2/
 ```
 
 

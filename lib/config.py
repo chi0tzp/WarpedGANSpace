@@ -66,6 +66,31 @@ GAN_WEIGHTS = {
 
 ########################################################################################################################
 ##                                                                                                                    ##
+##                                        [ Pre-trained WarpedGANSpace models ]                                       ##
+##                                                                                                                    ##
+########################################################################################################################
+SNGAN_MNIST_LeNet_K64_D128_LearnGammas_eps0d15_0d25 = (
+    'https://www.dropbox.com/s/52xsrcbhmpvqr93/SNGAN_MNIST-LeNet-K64-D128-LearnGammas-eps0.15_0.25.tar?dl=1',
+    'eb818cb022f868a963a04e2cc39939b74f419c03f694766b83efa06e13c780c9'
+)
+
+SNGAN_AnimeFaces_LeNet_K64_D128_LearnGammas_eps0d25_0d35 = (
+    'https://www.dropbox.com/s/5m97rd577yze80e/SNGAN_AnimeFaces-LeNet-K64-D128-LearnGammas-eps0.25_0.35.tar?dl=1',
+    'd0af35de792bfc8d3007401d4579251bb1431a3c420feda70b9a051249ef1175'
+)
+
+BigGAN_239_ResNet_K120_D256_LearnGammas_eps0d15_0d25 = (
+    'https://www.dropbox.com/s/0ebk7qtdm4x5qce/BigGAN-239-ResNet-K120-D256-LearnGammas-eps0.15_0.25.tar?dl=1',
+    '2b0cca6c193a6a8614ada11988ec68f081856348f375d5513b1aa726ba7137b0'
+)
+
+ProgGAN_ResNet_K200_D512_LearnGammas_eps0d1_0d2 = (
+    'https://www.dropbox.com/s/kw9ozsgo5emx2ef/ProgGAN-ResNet-K200-D512-LearnGammas-eps0.1_0.2.tar?dl=1',
+    '088d7a415ad5a9d3813135dea3b7eda57fe4cedeb345fdad89ab1074af57c09e'
+)
+
+########################################################################################################################
+##                                                                                                                    ##
 ##                                                     [ SFD ]                                                        ##
 ##                                                                                                                    ##
 ########################################################################################################################
