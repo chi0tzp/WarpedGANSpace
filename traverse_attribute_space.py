@@ -102,7 +102,8 @@ def main():
     """
     parser = argparse.ArgumentParser(description="Traversals evaluation script")
     parser.add_argument('-v', '--verbose', action='store_true', help="set verbose mode on")
-    parser.add_argument('--exp', type=str, required=True, help="set experiment's model dir (created by `train.py`)")
+    parser.add_argument('--exp', type=str, required=True, help="set experiment's model dir (created by `train.py` and "
+                                                               "used by `traverse_latent_space.py`.)")
     parser.add_argument('--pool', type=str, required=True, help="choose pool of pre-defined latent codes and their "
                                                                 "latent traversals (should be a subdirectory of "
                                                                 "experiments/<exp>/results/, as created by "
