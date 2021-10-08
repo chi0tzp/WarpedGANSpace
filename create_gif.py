@@ -20,46 +20,29 @@ def get_gif_size(img_paths):
 
 
 def main():
-    """Create GIF image (static and animated image sequence) for the given `EXP_DIR`, `TRAVERSAL_CONFIG`, latent code
-    hash, and path id.
+    """Create GIF image (static and animated image sequence).
 
     Options:
         ================================================================================================================
-        --exp      : set experiment's model dir, as created by `train.py` and used by `traverse_latent_space.py`. That
-                     is, it should contain the traversals for at least one latent codes/images pool, under the results/
-                     directory.
-        --pool     : set pool of latent codes (should be a subdirectory of experiments/<exp>/results/<gan_type>, as
-                     created by traverse_latent_space.py)
-        --config   : set traversal config (see README.md for details)
-        --hash     : set latent code hash
+        --dir      : set directory of latent code hash for a given experiment, pool, and traversal config
         --path-id  : set path id
         --num-imgs : set number of static images per sequence; by default all available images in the path will be used
+        --gif-size : set GIF image size (otherwise use dimensions of given images)
         --gif-fps  : set number of frames per second for the generated GIF image
         ================================================================================================================
 
     Example:
-
-        python create_gif.py --exp=experiments/complete/ProgGAN-ResNet-K200-D512-LearnGammas-eps0.1_0.2/ \
-                             --pool=ProgGAN_4_F \
-                             --config=56_0.15_8.4 \
-                             --hash=059e28ce390858117025fffa38e4bfabcebc478c \
-                             --path-id=96
+        python create_gif.py --gif-size=196 --num-imgs=7 --dir=experiments/complete/ProgGAN-ResNet-K200-D512-LearnGammas-eps0.1_0.2/results/ProgGAN_4_F/56_0.15_8.4/435c92ab04f994fd192526b9107396747caf283a/ --path-id=96
 
     """
     parser = argparse.ArgumentParser("Create GIF image (static and animated image sequence) for the given latent path.")
-    parser.add_argument('--exp', type=str, required=True, help="set experiment's model dir (created by `train.py` and "
-                                                               "used by `traverse_latent_space.py`.)")
-    parser.add_argument('--pool', type=str, required=True, help="choose pool of pre-defined latent codes and their "
-                                                                "latent traversals (should be a subdirectory of "
-                                                                "experiments/<exp>/results/, as created by "
-                                                                "traverse_latent_space.py)")
-    parser.add_argument('--config', type=str, required=True, help="set traversal config (see README.md for details)")
-    parser.add_argument('--hash', type=str, required=True, help="set latent hash code")
+    parser.add_argument('--dir', type=str, required=True, help="set ???")
+
     parser.add_argument('--path-id', type=int, required=True, help="set path id")
     parser.add_argument('--num-imgs', type=int, help="set number of static images per sequence; by default all "
                                                      "available images in the path will be used")
-    # TODO: add --gif-size
-    parser.add_argument('--gif-fps', type=int, default=30, help="set gif frame rate")
+    parser.add_argument('--gif-size', type=int, default=128, help="GIF image size")
+    parser.add_argument('--gif-fps', type=int, default=30, help="set GIF frame rate")
 
     # Parse given arguments
     args = parser.parse_args()
@@ -72,8 +55,7 @@ def main():
     progress_bar_color = (252, 186, 3)
 
     # Check if given path directory exists
-    img_path_dir = osp.join(args.exp, 'results', args.pool, args.config, args.hash, 'paths_images',
-                            'path_{:03d}'.format(args.path_id))
+    img_path_dir = osp.join(args.dir, 'paths_images', 'path_{:03d}'.format(args.path_id))
 
     print("#. Create GIF...")
     if not osp.isdir(img_path_dir):
@@ -100,16 +82,19 @@ def main():
         static_imgs.append(osp.join(img_path_dir, '{:06}.jpg'.format(i)))
     args.num_imgs = len(static_imgs)
 
-    gif_w, gif_h = get_gif_size(static_imgs)
+    # Get GIF image resolution
+    if args.gif_size:
+        gif_w = gif_h = args.gif_size
+    else:
+        gif_w, gif_h = get_gif_size(static_imgs)
 
-    latent_code_dir = osp.join(args.exp, 'results', args.pool, args.config, args.hash)
-    latent_code_gifs_dir = osp.join(latent_code_dir, 'paths_gifs')
+    latent_code_gifs_dir = osp.join(args.dir, 'paths_gifs')
     os.makedirs(latent_code_gifs_dir, exist_ok=True)
 
     # Create PIL static image
     static_img_pil = Image.new('RGB', size=(len(static_imgs) * gif_w, gif_h))
     for i in range(len(static_imgs)):
-        static_img_pil.paste(Image.open(static_imgs[i]), (i * gif_w, 0))
+        static_img_pil.paste(Image.open(static_imgs[i]).resize((gif_w, gif_h)), (i * gif_w, 0))
 
     # Create PIL GIF frames
     gif_frames = []
@@ -121,7 +106,7 @@ def main():
         gif_frame_pil.paste(static_img_pil, (0, 0))
 
         # Paste current image
-        gif_frame_pil.paste(Image.open(path_images[i]), (args.num_imgs * gif_w + gap, 0))
+        gif_frame_pil.paste(Image.open(path_images[i]).resize((gif_w, gif_h)), (args.num_imgs * gif_w + gap, 0))
 
         # Draw frames and progress bar
         gif_frame_pil_drawing = ImageDraw.Draw(gif_frame_pil)
