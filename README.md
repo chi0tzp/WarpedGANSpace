@@ -3,8 +3,10 @@
 Authors official PyTorch implementation of the **[WarpedGANSpace: Finding non-linear RBF paths in GAN latent space (ICCV 2021)](https://arxiv.org/abs/2109.13357)**. If you use this code for your research, please [**cite**](#citation) our paper.
 
 <p align="center">
-<img src="demo/path_096.gif" style="width: 50vw"/>
+<img src="demo/ProgGAN/path_096.gif" style="width: 45vw"/>
+<img src="demo/ProgGAN/path_096.gif" style="width: 45vw"/>
 </p>
+
 
 
 
