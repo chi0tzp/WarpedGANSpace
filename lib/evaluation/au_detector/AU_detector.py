@@ -3,13 +3,9 @@ from .hourglass import FANAU
 
 
 class Model:
-    def __init__(self, npts=5, corenet='pretrained_models/disfa_adaptation_f0.pth', use_cuda=True):
-        self.npoints = npts
-        self.FAN = FANAU(num_modules=1, n_points=self.npoints)
-        print('Load AU detector from {}'.format(corenet))
-
-        checkpoint = torch.load(corenet, map_location='cpu')['state_dict']
-        self.FAN.load_state_dict(checkpoint)
+    def __init__(self, npts=12, corenet='pretrained_models/disfa_adaptation_f0.pth', use_cuda=True):
+        self.FAN = FANAU(num_modules=1, n_points=npts)
+        self.FAN.load_state_dict(torch.load(corenet, map_location='cpu')['state_dict'])
         self.FAN.eval()
         if use_cuda:
             self.FAN.cuda()
@@ -31,7 +27,6 @@ class Model:
 
 
 class AUdetector:
-
     def __init__(self, au_model_path='models/pretrained/au_detector/disfa_adaptation_f0.pth', use_cuda=True):
         self.naus = 12
         self.AUdetector = Model(npts=self.naus, corenet=au_model_path, use_cuda=use_cuda)

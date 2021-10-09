@@ -193,10 +193,13 @@ def main():
                                                                     std=[0.229, 0.224, 0.225])])
 
     # Define face transformation required by AU detector
+    # face_trans_au = transforms.Compose([transforms.Resize(256),
+    #                                     transforms.CenterCrop(256),
+    #                                     transforms.Normalize(mean=[0.485, 0.456, 0.406],
+    #                                                          std=[0.229, 0.224, 0.225])])
+    # REVIEW: do not normalise cropped faces -- AU_detector will min-max normalise
     face_trans_au = transforms.Compose([transforms.Resize(256),
-                                        transforms.CenterCrop(256),
-                                        transforms.Normalize(mean=[0.485, 0.456, 0.406],
-                                                             std=[0.229, 0.224, 0.225])])
+                                        transforms.CenterCrop(256)])
 
     ####################################################################################################################
     ##                                                                                                                ##

@@ -2,7 +2,7 @@
 
 pool="StyleGAN2_4_E"
 eps=0.15
-shift_steps=16
+shift_steps=20
 shift_leap=1
 batch_size=8
 
@@ -15,5 +15,5 @@ do
   # Traverse attribute space
   python traverse_attribute_space.py -v --exp="${exp}" --pool=${pool} --eps=${eps} --shift-steps=${shift_steps}
   # Rank interpretable paths
-  # python rank_interpretable_paths_bkp.py -v --exp="${exp}" --pool=${pool} --eps=${eps} --shift-steps=${shift_steps}
+  # python rank_interpretable_paths.py -v --exp="${exp}" --pool=${pool} --eps=${eps} --shift-steps=${shift_steps}
 done
