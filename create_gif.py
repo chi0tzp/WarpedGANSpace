@@ -48,8 +48,6 @@ def main():
     args = parser.parse_args()
 
     # GIF Config
-    frame_line_w = 6
-    frame_outline_color = 'black'
     gap = 15
     progress_bar_h = 15
     progress_bar_color = (252, 186, 3)
@@ -111,28 +109,20 @@ def main():
         # Draw frames and progress bar
         gif_frame_pil_drawing = ImageDraw.Draw(gif_frame_pil)
 
-        gif_frame_pil_drawing.rectangle(xy=[0, 0, args.num_imgs * gif_w, gif_h],
-                                        width=frame_line_w,
-                                        outline=frame_outline_color)
-
         progress = (i / len(path_images)) * gif_w
         gif_frame_pil_drawing.rectangle(xy=[args.num_imgs * gif_w + gap, gif_h - progress_bar_h,
                                             args.num_imgs * gif_w + gap + progress, gif_h],
                                         fill=progress_bar_color)
-        gif_frame_pil_drawing.rectangle(xy=[args.num_imgs * gif_w + gap, 0,
-                                            args.num_imgs * gif_w + gap + gif_w, gif_h],
-                                        width=frame_line_w,
-                                        outline=frame_outline_color)
+
         # Append to GIF frames list
         gif_frames.append(gif_frame_pil)
 
     # Save GIF file
-    gif_pil = Image.new(mode='RGB', size=((args.num_imgs + 1) * gif_w + gap, gif_h))
-    gif_pil.save(
+    gif_frames[0].save(
         fp=osp.join(latent_code_gifs_dir, 'path_{:03d}.gif'.format(args.path_id)),
-        append_images=gif_frames,
+        append_images=gif_frames[1:],
         save_all=True,
-        optimize=True,
+        optimize=False,
         loop=0,
         duration=1000 // args.gif_fps)
 
