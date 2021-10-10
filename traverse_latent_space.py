@@ -1,3 +1,4 @@
+import sys
 import argparse
 import os
 import os.path as osp
@@ -23,17 +24,22 @@ class ModelArgs:
         self.__dict__.update(kwargs)
 
 
-def tensor2image(tensor, adaptive=False):
+def tensor2image(tensor, img_size=None, adaptive=False):
     # Squeeze tensor image
     tensor = tensor.squeeze(dim=0)
-
     if adaptive:
         tensor = (tensor - tensor.min()) / (tensor.max() - tensor.min())
-        return ToPILImage()((255 * tensor.cpu().detach()).to(torch.uint8))
+        if img_size:
+            return ToPILImage()((255 * tensor.cpu().detach()).to(torch.uint8)).resize((img_size, img_size))
+        else:
+            return ToPILImage()((255 * tensor.cpu().detach()).to(torch.uint8))
     else:
         tensor = (tensor + 1) / 2
         tensor.clamp(0, 1)
-        return ToPILImage()((255 * tensor.cpu().detach()).to(torch.uint8))
+        if img_size:
+            return ToPILImage()((255 * tensor.cpu().detach()).to(torch.uint8)).resize((img_size, img_size))
+        else:
+            return ToPILImage()((255 * tensor.cpu().detach()).to(torch.uint8))
 
 
 def build_gan(gan_type, target_classes, stylegan2_resolution, stylegan2_w_space, use_cuda, multi_gpu):
@@ -133,8 +139,9 @@ def main():
                         2 * args.shift_steps.
         --eps         : set shift step magnitude for generating G(z'), where z' = z +/- eps * direction.
         --shift-leap  : set path shift leap (after how many steps to generate images)
-        --batch-size  : generator batch size
-        --img-size    : image size
+        --batch-size  : set generator batch size (if not set, use the total number of images per path)
+        --img-size    : set size of saved generated images (if not set, use the output size of the respective GAN
+                        generator)
         --img-quality : JPEG image quality (max 95)
         --gif         : generate collated GIF images for all paths and all latent codes
         --gif-size    : set GIF image size
@@ -155,11 +162,13 @@ def main():
     parser.add_argument('--eps', type=float, default=0.2, help="set shift step magnitude")
     parser.add_argument('--shift-leap', type=int, default=1,
                         help="set path shift leap (after how many steps to generate images)")
-    parser.add_argument('--batch-size', type=int, help="set generator batch size")
-    parser.add_argument('--img-size', type=int, default=256, help="set image resolution")
+    parser.add_argument('--batch-size', type=int, help="set generator batch size (if not set, use the total number of "
+                                                       "images per path)")
+    parser.add_argument('--img-size', type=int, help="set size of saved generated images (if not set, use the output "
+                                                     "size of the respective GAN generator)")
     parser.add_argument('--img-quality', type=int, default=75, help="set JPEG image quality")
     parser.add_argument('--gif', action='store_true', help="Create GIF traversals")
-    parser.add_argument('--gif-size', type=int, default=128, help="set gif resolution")
+    parser.add_argument('--gif-size', type=int, default=256, help="set gif resolution")
     parser.add_argument('--gif-fps', type=int, default=30, help="set gif frame rate")
     # ================================================================================================================ #
     parser.add_argument('--cuda', dest='cuda', action='store_true', help="use CUDA during training")
@@ -287,6 +296,12 @@ def main():
     # Set default batch size
     if args.batch_size is None:
         args.batch_size = 2 * args.shift_steps + 1
+
+    # Set size of saved generated images
+    if args.img_size is None:
+        # TODO
+        pass
+        # args.img_size = ???
 
     ## ============================================================================================================== ##
     ##                                                                                                                ##
@@ -434,8 +449,8 @@ def main():
             # Convert tensors (transformed images) into PIL images
             for t in range(transformed_img.size()[0]):
                 transformed_images.append(tensor2image(transformed_img[t, :].cpu(),
-                                                       adaptive=True).resize((args.img_size, args.img_size)))
-
+                                                       img_size=args.img_size,
+                                                       adaptive=True))
             # Save all images in `transformed_images` list under `transformed_images_root_dir/<path_<dim>/`
             transformed_images_dir = osp.join(transformed_images_root_dir, 'path_{:03d}'.format(dim))
             os.makedirs(transformed_images_dir, exist_ok=True)
