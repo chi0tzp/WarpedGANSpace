@@ -188,11 +188,13 @@ This script needs a `TRAVERSAL_CONFIG` found under `experiments/complete/EXP_DIR
 Bibtex entry:
 
 ```bibtex
-@inproceedings{warpedganspace,
-  title={{WarpedGANSpace}: Finding non-linear {RBF} paths in {GAN} latent space},
-  author={Tzelepis, Christos and Tzimiropoulos, Georgios and Patras, Ioannis},
-  booktitle={IEEE International Conference on Computer Vision (ICCV)},
-  year={2021}
+@InProceedings{Tzelepis_2021_ICCV,
+    author    = {Tzelepis, Christos and Tzimiropoulos, Georgios and Patras, Ioannis},
+    title     = {{WarpedGANSpace}: Finding Non-Linear RBF Paths in {GAN} Latent Space},
+    booktitle = {Proceedings of the IEEE/CVF International Conference on Computer Vision (ICCV)},
+    month     = {October},
+    year      = {2021},
+    pages     = {6393-6402}
 }
 ```
 
