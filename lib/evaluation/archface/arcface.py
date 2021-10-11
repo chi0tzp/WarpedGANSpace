@@ -44,10 +44,10 @@ class SEModule(Module):
         super(SEModule, self).__init__()
         self.avg_pool = AdaptiveAvgPool2d(1)
         self.fc1 = Conv2d(
-            channels, channels // reduction, kernel_size=1, padding=0, bias=False)
+            channels, channels // reduction, kernel_size=(1, 1), padding=0, bias=False)
         self.relu = ReLU(inplace=True)
         self.fc2 = Conv2d(
-            channels // reduction, channels, kernel_size=1, padding=0, bias=False)
+            channels // reduction, channels, kernel_size=(1, 1), padding=0, bias=False)
         self.sigmoid = Sigmoid()
 
     def forward(self, x):
@@ -136,7 +136,7 @@ class SE_IR(Module):
         assert num_layers in [50, 100, 152], 'num_layers should be 50,100, or 152'
         assert mode in ['ir', 'ir_se'], 'mode should be ir or ir_se'
 
-        self.input_layer = Sequential(Conv2d(3, 64, (3, 3), 1, 1, bias=False),
+        self.input_layer = Sequential(Conv2d(3, 64, (3, 3), (1, 1), 1, bias=False),
                                       BatchNorm2d(64),
                                       PReLU(64))
         self.output_layer = Sequential(BatchNorm2d(512),
