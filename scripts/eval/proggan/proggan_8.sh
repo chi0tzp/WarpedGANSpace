@@ -2,7 +2,7 @@
 
 pool="ProgGAN_4_A"
 eps=0.15
-shift_steps=32
+shift_steps=30
 shift_leap=1
 batch_size=16
 
