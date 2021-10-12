@@ -105,7 +105,7 @@ def main():
         [6] Ntinou, Ioanna, et al. "A transfer learning approach to heatmap regression for action unit intensity
             estimation." IEEE Transactions on Affective Computing (2021).
         [7] Jiang, Yuming, et al. "Talk-to-Edit: Fine-Grained Facial Editing via Dialog." Proceedings of the IEEE/CVF
-           International Conference on Computer Vision. 2021.
+            International Conference on Computer Vision. 2021.
 
     """
     parser = argparse.ArgumentParser(description="Traversals evaluation script")
@@ -214,7 +214,9 @@ def main():
     # Define CelebA attributes predictor
     celeba_5 = celeba_attr_predictor(attr_file='lib/evaluation/celeba_attributes/attributes_5.json',
                                      pretrained='models/pretrained/celeba_attributes/eval_predictor.pth.tar').eval()
-    celeba_5_trans = transforms.Compose([transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])])
+    celeba_5_trans = transforms.Compose([transforms.Resize(224),
+                                         transforms.CenterCrop(224),
+                                         transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])])
     celeba_5_softmax = nn.Softmax(dim=1)
 
     if use_cuda:
@@ -342,6 +344,7 @@ def main():
                 ##                                      [ CelebA Attributes ]                                         ##
                 ##                                                                                                    ##
                 ########################################################################################################
+                # The following are based on [7] (see above):                                                         ##
                 # -- Bangs      : Proportion of the exposed forehead (100%, 80%, 60%, 40%, 20%, and 0%).              ##
                 # -- Eyeglasses : Thickness of glasses frames and type of glasses (ordinary / sunglasses).            ##
                 # -- Beard      : Thickness of the beard.                                                             ##
@@ -349,29 +352,23 @@ def main():
                 # -- Age        : below 15, 15-30, 30-40, 40-50, 50-60, and above 60.                                 ##
                 ########################################################################################################
                 if gan_type == 'StyleGAN2':
-                    # Transform image range to [-1, 1]
+                    # According to [7], transform image to range [-1, 1] before mean-std normalization
                     with torch.no_grad():
                         attribute_predictions = celeba_5(
                             celeba_5_trans(path_images_tensor.div(255.0).mul(2.0).add(-1.0)))
                 else:
+                    # According to [7], transform image to range [0, 1] before mean-std normalization
                     path_images_tensor_ = path_images_tensor.clone()
-
-                    # Transform image range to [0, 1]
                     path_images_tensor_ = (path_images_tensor_ - path_images_tensor_.min()) / \
                                           (path_images_tensor_.max() - path_images_tensor_.min())
-
                     with torch.no_grad():
-                        # attribute_predictions = celeba_5(celeba_5_trans(path_images_tensor_))
-                        attribute_predictions = celeba_5(path_images_tensor_)
+                        attribute_predictions = celeba_5(celeba_5_trans(path_images_tensor_))
 
                 for attr, attr_predictions in attribute_predictions.items():
                     attr_scores = celeba_5_softmax(attr_predictions).cpu().numpy()
                     scores = np.max(attr_scores, axis=1)
                     labels = np.argmax(attr_scores, axis=1)
-
-                    # TODO: add comment
                     final_scores = (labels + scores) / 6.0
-                    # final_scores = labels / 6.0
 
                     if attr == 'Bangs':
                         celeba_bangs_np[d] = final_scores
@@ -395,9 +392,9 @@ def main():
                 ##                                              [ ID ]                                                ##
                 ##                                                                                                    ##
                 ########################################################################################################
-                # REVIEW: check with cropped faces
+                # TODO: Use face detection to crop faces (instead of the heuristic followed in `arcface.py`, i.e.,
+                #       x = x[:, :, 35:223, 32:220])
                 path_images_tensor_resized = face_detector_trans(path_images_tensor)
-
                 original_img = path_images_tensor_resized[num_of_img_per_path // 2, :].unsqueeze(0)
                 id_scores = [id_comp(original_img.div(255.0).mul(2.0).add(-1.0),
                                      original_img.div(255.0).mul(2.0).add(-1.0)).item()]
