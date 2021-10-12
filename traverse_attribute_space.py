@@ -9,7 +9,7 @@ import json
 import torchvision
 from torchvision import transforms
 from lib import update_progress, update_stdout
-from lib import PathImages, IDComparator, SFDDetector, Hopenet, AUdetector
+from lib import PathImages, IDComparator, SFDDetector, Hopenet, AUdetector, celeba_attr_predictor
 
 
 # Action Units
@@ -27,6 +27,11 @@ AUs = {
     "au_25": "Lips_part",
     "au_26": "Jaw Drop"
 }
+
+
+class ModelArgs:
+    def __init__(self, **kwargs):
+        self.__dict__.update(kwargs)
 
 
 def crop_face(images, idx, bbox, padding=0.0):
@@ -66,6 +71,7 @@ def main():
         -- Age, race, and gender ("femaleness") using FairFace [3]
         -- Pose (in terms of the Euler angles, yaw, pitch, and roll) using Hopenet [4]
         -- 12 Actions Units (AUs) from DISFA [5] using [6]
+        -- 5 CelebA attributes [7] ('Bangs', 'Eyeglasses', 'No_Beard', 'Smiling', 'Young')
 
     Options:
         ================================================================================================================
@@ -98,6 +104,8 @@ def main():
             Affective Computing 4.2 (2013): 151-160.
         [6] Ntinou, Ioanna, et al. "A transfer learning approach to heatmap regression for action unit intensity
             estimation." IEEE Transactions on Affective Computing (2021).
+        [7] Jiang, Yuming, et al. "Talk-to-Edit: Fine-Grained Facial Editing via Dialog." Proceedings of the IEEE/CVF
+           International Conference on Computer Vision. 2021.
 
     """
     parser = argparse.ArgumentParser(description="Traversals evaluation script")
@@ -123,6 +131,13 @@ def main():
     if not osp.isdir(args.exp):
         raise NotADirectoryError("Error: invalid experiment's directory: {}".format(args.exp))
     else:
+        # Get gan_type
+        args_json_file = osp.join(args.exp, 'args.json')
+        if not osp.isfile(args_json_file):
+            raise FileNotFoundError("File not found: {}".format(args_json_file))
+        args_json = ModelArgs(**json.load(open(args_json_file)))
+        gan_type = args_json.__dict__["gan_type"]
+        # Check results directory
         if not osp.isdir(latent_traversal_dir):
             raise NotADirectoryError("Error: pool directory {} not found under {}".format(
                 args.pool, osp.join(args.exp, 'results')))
@@ -152,6 +167,7 @@ def main():
     # Define SFD face detector model
     face_detector = SFDDetector(path_to_detector='models/pretrained/sfd/s3fd-619a316812.pth',
                                 device="cuda" if use_cuda else "cpu")
+    face_detector_trans = transforms.Compose([transforms.Resize(256), transforms.CenterCrop(256)])
 
     # Define ID comparator based on ArcFace
     id_comp = IDComparator()
@@ -183,23 +199,26 @@ def main():
     if use_cuda:
         idx_tensor = idx_tensor.cuda()
 
-    # Define AU detector
-    AU_detector = AUdetector(au_model_path='models/pretrained/au_detector/disfa_adaptation_f0.pth', use_cuda=use_cuda)
-
     # Define face transformation required by Hopenet and FairFace
     face_trans_hope_fair = transforms.Compose([transforms.Resize(224),
                                                transforms.CenterCrop(224),
                                                transforms.Normalize(mean=[0.485, 0.456, 0.406],
                                                                     std=[0.229, 0.224, 0.225])])
 
+    # Define AU detector
+    AU_detector = AUdetector(au_model_path='models/pretrained/au_detector/disfa_adaptation_f0.pth', use_cuda=use_cuda)
+
     # Define face transformation required by AU detector
-    # face_trans_au = transforms.Compose([transforms.Resize(256),
-    #                                     transforms.CenterCrop(256),
-    #                                     transforms.Normalize(mean=[0.485, 0.456, 0.406],
-    #                                                          std=[0.229, 0.224, 0.225])])
-    # REVIEW: do not normalise cropped faces -- AU_detector will min-max normalise
-    face_trans_au = transforms.Compose([transforms.Resize(256),
-                                        transforms.CenterCrop(256)])
+    face_trans_au = transforms.Compose([transforms.Resize(256), transforms.CenterCrop(256)])
+
+    # Define CelebA attributes predictor
+    celeba_5 = celeba_attr_predictor(attr_file='lib/evaluation/celeba_attributes/attributes_5.json',
+                                     pretrained='models/pretrained/celeba_attributes/eval_predictor.pth.tar').eval()
+    celeba_5_trans = transforms.Compose([transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])])
+    celeba_5_softmax = nn.Softmax(dim=1)
+
+    if use_cuda:
+        celeba_5.cuda()
 
     ####################################################################################################################
     ##                                                                                                                ##
@@ -241,6 +260,11 @@ def main():
             race_dict = dict()
             pose_dict = dict()
             aus_dict = dict()
+            celeba_bangs_dict = dict()
+            celeba_eyeglasses_dict = dict()
+            celeba_beard_dict = dict()
+            celeba_smiling_dict = dict()
+            celeba_age_dict = dict()
 
             # Define numpy arrays for the various evaluation predictions
             face_width_np = np.zeros((num_of_paths, num_of_img_per_path))
@@ -253,6 +277,11 @@ def main():
             pitch_np = np.zeros((num_of_paths, num_of_img_per_path))
             roll_np = np.zeros((num_of_paths, num_of_img_per_path))
             aus_np = np.zeros((len(AUs), num_of_paths, num_of_img_per_path))
+            celeba_bangs_np = np.zeros((num_of_paths, num_of_img_per_path))
+            celeba_eyeglasses_np = np.zeros((num_of_paths, num_of_img_per_path))
+            celeba_beard_np = np.zeros((num_of_paths, num_of_img_per_path))
+            celeba_smiling_np = np.zeros((num_of_paths, num_of_img_per_path))
+            celeba_age_np = np.zeros((num_of_paths, num_of_img_per_path))
 
             for d in range(num_of_paths):
                 if args.verbose:
@@ -261,7 +290,7 @@ def main():
 
                 ########################################################################################################
                 ##                                                                                                    ##
-                ##                                        [ Face Detection ]                                          ##
+                ##                                      [ Image Data Loader ]                                         ##
                 ##                                                                                                    ##
                 ########################################################################################################
                 data_loader = data.DataLoader(dataset=PathImages(root_path=osp.join(path_images_dir,
@@ -274,10 +303,17 @@ def main():
                 path_images_tensor = next(iter(data_loader))
                 if use_cuda:
                     path_images_tensor = path_images_tensor.cuda()
+                ########################################################################################################
 
+                ########################################################################################################
+                ##                                                                                                    ##
+                ##                                        [ Face Detection ]                                          ##
+                ##                                                                                                    ##
+                ########################################################################################################
                 # Detect faces in path images (B x 3 x 256 x 256)
                 with torch.no_grad():
-                    detected_faces, _, _ = face_detector.detect_from_batch(path_images_tensor)
+                    detected_faces, _, _ = face_detector.detect_from_batch(face_detector_trans(path_images_tensor))
+                ########################################################################################################
 
                 ########################################################################################################
                 ##                                                                                                    ##
@@ -303,20 +339,76 @@ def main():
 
                 ########################################################################################################
                 ##                                                                                                    ##
+                ##                                      [ CelebA Attributes ]                                         ##
+                ##                                                                                                    ##
+                ########################################################################################################
+                # -- Bangs      : Proportion of the exposed forehead (100%, 80%, 60%, 40%, 20%, and 0%).              ##
+                # -- Eyeglasses : Thickness of glasses frames and type of glasses (ordinary / sunglasses).            ##
+                # -- Beard      : Thickness of the beard.                                                             ##
+                # -- Smiling    : Ratio of exposed teeth and open mouth.                                              ##
+                # -- Age        : below 15, 15-30, 30-40, 40-50, 50-60, and above 60.                                 ##
+                ########################################################################################################
+                if gan_type == 'StyleGAN2':
+                    # Transform image range to [-1, 1]
+                    with torch.no_grad():
+                        attribute_predictions = celeba_5(
+                            celeba_5_trans(path_images_tensor.div(255.0).mul(2.0).add(-1.0)))
+                else:
+                    path_images_tensor_ = path_images_tensor.clone()
+
+                    # Transform image range to [0, 1]
+                    path_images_tensor_ = (path_images_tensor_ - path_images_tensor_.min()) / \
+                                          (path_images_tensor_.max() - path_images_tensor_.min())
+
+                    with torch.no_grad():
+                        # attribute_predictions = celeba_5(celeba_5_trans(path_images_tensor_))
+                        attribute_predictions = celeba_5(path_images_tensor_)
+
+                for attr, attr_predictions in attribute_predictions.items():
+                    attr_scores = celeba_5_softmax(attr_predictions).cpu().numpy()
+                    scores = np.max(attr_scores, axis=1)
+                    labels = np.argmax(attr_scores, axis=1)
+
+                    # TODO: add comment
+                    final_scores = (labels + scores) / 6.0
+                    # final_scores = labels / 6.0
+
+                    if attr == 'Bangs':
+                        celeba_bangs_np[d] = final_scores
+                        celeba_bangs_dict.update({d: final_scores.tolist()})
+                    elif attr == 'Eyeglasses':
+                        celeba_eyeglasses_np[d] = final_scores
+                        celeba_eyeglasses_dict.update({d: final_scores.tolist()})
+                    elif attr == 'No_Beard':
+                        celeba_beard_np[d] = final_scores
+                        celeba_beard_dict.update({d: final_scores.tolist()})
+                    elif attr == 'Smiling':
+                        celeba_smiling_np[d] = final_scores
+                        celeba_smiling_dict.update({d: final_scores.tolist()})
+                    elif attr == 'Young':
+                        celeba_age_np[d] = final_scores
+                        celeba_age_dict.update({d: final_scores.tolist()})
+                ########################################################################################################
+
+                ########################################################################################################
+                ##                                                                                                    ##
                 ##                                              [ ID ]                                                ##
                 ##                                                                                                    ##
                 ########################################################################################################
-                original_img = path_images_tensor[num_of_img_per_path // 2, :].unsqueeze(0)
+                # REVIEW: check with cropped faces
+                path_images_tensor_resized = face_detector_trans(path_images_tensor)
+
+                original_img = path_images_tensor_resized[num_of_img_per_path // 2, :].unsqueeze(0)
                 id_scores = [id_comp(original_img.div(255.0).mul(2.0).add(-1.0),
                                      original_img.div(255.0).mul(2.0).add(-1.0)).item()]
                 for t in range((num_of_img_per_path - 1) // 2):
-                    transformed_img = path_images_tensor[num_of_img_per_path // 2 + t + 1, :].unsqueeze(0)
+                    transformed_img = path_images_tensor_resized[num_of_img_per_path // 2 + t + 1, :].unsqueeze(0)
                     with torch.no_grad():
                         id_sim = id_comp(original_img.div(255.0).mul(2.0).add(-1.0),
                                          transformed_img.div(255.0).mul(2.0).add(-1.0))
                         id_scores.append(id_sim.item())
                 for t in range((num_of_img_per_path - 1) // 2):
-                    transformed_img = path_images_tensor[num_of_img_per_path // 2 - t - 1, :].unsqueeze(0)
+                    transformed_img = path_images_tensor_resized[num_of_img_per_path // 2 - t - 1, :].unsqueeze(0)
                     with torch.no_grad():
                         id_sim = id_comp(original_img.div(255.0).mul(2.0).add(-1.0),
                                          transformed_img.div(255.0).mul(2.0).add(-1.0))
@@ -333,7 +425,7 @@ def main():
                 ########################################################################################################
                 cropped_faces = torch.zeros(len(detected_faces), 3, 224, 224)
                 for t in range(len(detected_faces)):
-                    cropped_faces[t] = face_trans_hope_fair(crop_face(images=path_images_tensor,
+                    cropped_faces[t] = face_trans_hope_fair(crop_face(images=face_detector_trans(path_images_tensor),
                                                                       idx=t,
                                                                       bbox=detected_faces[t][0][:-1]
                                                                       if len(detected_faces[t]) > 0
@@ -381,7 +473,7 @@ def main():
                 ########################################################################################################
                 cropped_faces = torch.zeros(len(detected_faces), 3, 224, 224)
                 for t in range(len(detected_faces)):
-                    cropped_faces[t] = face_trans_hope_fair(crop_face(images=path_images_tensor,
+                    cropped_faces[t] = face_trans_hope_fair(crop_face(images=face_detector_trans(path_images_tensor),
                                                                       idx=t,
                                                                       bbox=detected_faces[t][0][:-1]
                                                                       if len(detected_faces[t]) > 0
@@ -418,7 +510,7 @@ def main():
                 ########################################################################################################
                 cropped_faces = torch.zeros(len(detected_faces), 3, 256, 256)
                 for t in range(len(detected_faces)):
-                    cropped_faces[t] = face_trans_au(crop_face(images=path_images_tensor,
+                    cropped_faces[t] = face_trans_au(crop_face(images=face_detector_trans(path_images_tensor),
                                                                idx=t,
                                                                bbox=detected_faces[t][0][:-1]
                                                                if len(detected_faces[t]) > 0
@@ -489,6 +581,27 @@ def main():
                 json.dump(aus_dict, out)
             for t, k in enumerate(AUs.keys()):
                 np.save(osp.join(np_files_dir, '{}_{}.npy'.format(k, AUs[k])), aus_np[t, :])
+
+            # Save CelebA attributes ("Bangs", "Eyeglasses", "Beard", "Smiling", "Age") in json and numpy array format
+            with open(osp.join(json_files_dir, 'celeba_bangs.json'), 'w') as out:
+                json.dump(celeba_bangs_dict, out)
+            np.save(osp.join(np_files_dir, 'celeba_bangs.npy'), celeba_bangs_np)
+
+            with open(osp.join(json_files_dir, 'celeba_eyeglasses.json'), 'w') as out:
+                json.dump(celeba_eyeglasses_dict, out)
+            np.save(osp.join(np_files_dir, 'celeba_eyeglasses.npy'), celeba_eyeglasses_np)
+
+            with open(osp.join(json_files_dir, 'celeba_beard.json'), 'w') as out:
+                json.dump(celeba_beard_dict, out)
+            np.save(osp.join(np_files_dir, 'celeba_beard.npy'), celeba_beard_np)
+
+            with open(osp.join(json_files_dir, 'celeba_smiling.json'), 'w') as out:
+                json.dump(celeba_smiling_dict, out)
+            np.save(osp.join(np_files_dir, 'celeba_smiling.npy'), celeba_smiling_np)
+
+            with open(osp.join(json_files_dir, 'celeba_age.json'), 'w') as out:
+                json.dump(celeba_age_dict, out)
+            np.save(osp.join(np_files_dir, 'celeba_age.npy'), celeba_age_np)
 
     if args.verbose:
         update_stdout(1)
