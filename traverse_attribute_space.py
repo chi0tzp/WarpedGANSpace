@@ -444,9 +444,11 @@ def main():
                 # Age predictions
                 age_outputs = outputs[:, 9:18]
                 age_scores = np.exp(age_outputs) / np.sum(np.exp(age_outputs), axis=1, keepdims=True)
-                age_predictions = np.argmax(age_scores, axis=1).tolist()
-                age_dict.update({d: age_predictions})
-                age_np[d] = np.array(age_predictions) / 8.0
+                age_predictions = np.argmax(age_scores, axis=1)
+                # Assign continuous scores
+                age_predictions = (age_predictions + np.max(age_scores, axis=1)) / 9.0
+                age_dict.update({d: age_predictions.tolist()})
+                age_np[d] = age_predictions
 
                 # Race Prediction
                 # 0: 'white'
@@ -458,9 +460,11 @@ def main():
                 # 6: 'Black'
                 race_outputs = outputs[:, :7]
                 race_scores = np.exp(race_outputs) / np.sum(np.exp(race_outputs), axis=1, keepdims=True)
-                race_predictions = np.argmax(race_scores, axis=1).tolist()
-                race_dict.update({d: race_predictions})
-                race_np[d] = np.array(race_predictions) / 6.0
+                race_predictions = np.argmax(race_scores, axis=1)
+                # Assign continuous scores
+                race_predictions = (race_predictions + np.max(race_scores, axis=1)) / 7.0
+                race_dict.update({d: race_predictions.tolist()})
+                race_np[d] = race_predictions
                 ########################################################################################################
 
                 ########################################################################################################
