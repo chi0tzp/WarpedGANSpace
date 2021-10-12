@@ -232,7 +232,7 @@ class Trainer(object):
             shift = target_shift_magnitudes.reshape(-1, 1) * support_sets(support_sets_mask, z)
 
             # Generate images for latent codes z and shifted latent codes z + shift. In the case of StyleGAN2, when
-            # `args.stylegan2_w_shift`, latent codes and shifts are considered in the W-space, even though we keep the
+            # `args.stylegan2_w_space`, latent codes and shifts are considered in the W-space, even though we keep the
             # same notation below.
             img = generator(z)
             img_shifted = generator(z, shift)
