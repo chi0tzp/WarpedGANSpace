@@ -1,12 +1,12 @@
 #!/bin/bash
 
-pool="ProgGAN_8"
+pool="StyleGAN2_8_females"
 eps=0.15
-shift_steps=30
+shift_steps=20
 shift_leap=1
-batch_size=16
+batch_size=8
 
-declare -a EXPERIMENTS=("experiments/complete/ProgGAN-ResNet-K200-D512-LearnGammas-eps0.1_0.2")
+declare -a EXPERIMENTS=("experiments/complete/StyleGAN2-1024-W-ResNet-K200-D512-LearnGammas-eps0.1_0.2")
 
 for exp in "${EXPERIMENTS[@]}"
 do
