@@ -13,11 +13,6 @@ Authors official PyTorch implementation of the **[WarpedGANSpace: Finding non-li
 </p>
 
 
-<p align="center">
-<img src="demo/banner/gender_1_173_689f0ab17f84b9cd36c0a5bdfb0469aadce4c4ba.gif"/>
-</p>
-
-
 ## Overview
 
 In this work, we try to discover *non-linear* interpretable paths in GAN latent space in an *unsupervised* and *model-agnostic* manner. For doing so, we model non-linear paths using RBF-based *warping functions*, which by warping the latent space, endow it with vector fields (their gradients).  We use the latter to traverse the latent space across the paths determined by the aforementioned vector fields for any given latent code.
