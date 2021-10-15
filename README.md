@@ -5,12 +5,12 @@ Authors official PyTorch implementation of the **[WarpedGANSpace: Finding non-li
 
 
 <p align="center">
-<img src="demo/StyleGAN2/age_path_019_db6cb850f328f734a2399347858a685a152e1228.gif" style="width: 50vw"/>
-<img src="demo/StyleGAN2/race_path_041_5e9893b9508f383603de655a34750820723e1f95.gif" style="width: 50vw"/>
-<img src="demo/StyleGAN2/gender_path_124_323bbfd47b3132c90fc0cdd0db2c768f011667b7.gif" style="width: 50vw"/>
-<img src="demo/ProgGAN/smile_path_096_93e1d271bc53e16f8bccedba2ef6b8f62c93f453.gif" style="width: 50vw"/>
+<img src="demo/banner/age_2_43_689f0ab17f84b9cd36c0a5bdfb0469aadce4c4ba.gif" style="width: 50vw"/>
+<img src="demo/banner/age_1_132_aa5165296e253473193bf0215d796ee1c3dedfa8.gif " style="width: 50vw"/>
+<img src="demo/banner/celeba_bangs_1_121_b4e18c876322aedcef6d2b36b273f4b2c0b642bb.gif " style="width: 50vw"/>
+<img src="demo/banner/gender_1_173_5e9893b9508f383603de655a34750820723e1f95.gif " style="width: 50vw"/>
+<img src="demo/banner/race_2_102_db6cb850f328f734a2399347858a685a152e1228.gif" style="width: 50vw"/>
 </p>
-
 
 
 ## Overview
