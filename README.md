@@ -2,15 +2,12 @@
 
 Authors official PyTorch implementation of the **[WarpedGANSpace: Finding non-linear RBF paths in GAN latent space (ICCV 2021)](https://arxiv.org/abs/2109.13357)**. If you use this code for your research, please [**cite**](#citation) our paper.
 
-
-
 <p align="center">
-<img src="demo/banner/celeba_age_1_6_689f0ab17f84b9cd36c0a5bdfb0469aadce4c4ba.gif" style="width: 75vw"/>
-<img src="demo/banner/gender_1_0_50441c6d696cdd52c8435da33ed7bb94f550013d.gif " style="width: 75vw"/>
-<img src="demo/banner/gender_1_195_b4e18c876322aedcef6d2b36b273f4b2c0b642bb.gif " style="width: 75vw"/>
-<img src="demo/banner/race_2_109_5e9893b9508f383603de655a34750820723e1f95.gif" style="width: 75vw"/>
+<img src="demo/banner/celeba_age_1_6_689f0ab17f84b9cd36c0a5bdfb0469aadce4c4ba.gif" style="width: 75vw" title="Age"/>
+<img src="demo/banner/gender_1_0_50441c6d696cdd52c8435da33ed7bb94f550013d.gif " style="width: 75vw" title="Gender"/>
+<img src="demo/banner/race_2_109_5e9893b9508f383603de655a34750820723e1f95.gif" style="width: 75vw" title="Race"/>
+<img src="demo/banner/gender_1_195_b4e18c876322aedcef6d2b36b273f4b2c0b642bb.gif " style="width: 75vw" title="Gender"/>
 </p>
-
 
 
 ## Overview
