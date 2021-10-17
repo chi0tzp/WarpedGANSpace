@@ -23,9 +23,9 @@ AUs = {
     "au_12": "Lip_Corner_Puller",  # (aka "Smile")
     "au_15": "Lip_Corner_Depressor",
     "au_17": "Chin_Raiser",
-    "au_20": "Lip stretcher",
+    "au_20": "Lip_stretcher",
     "au_25": "Lips_part",
-    "au_26": "Jaw Drop"
+    "au_26": "Jaw_Drop"
 }
 
 
@@ -78,8 +78,8 @@ def main():
         -v, --verbose : set verbose mode on
         ================================================================================================================
         --exp         : set experiment's model dir, as created by `train.py` and used by `traverse_latent_space.py`.
-                        That is, it should contain the traversals for at least one latent codes/images pool, under the
-                        results/ directory.
+                        That is, it should contain the latent traversals for at least one latent codes/images pool,
+                        under the results/ directory.
         --pool        : set pool of latent codes (should be a subdirectory of experiments/<exp>/results/<gan_type>, as
                         created by traverse_latent_space.py)
         If the following two arguments are specified, evaluation (attribute space traversals) will be performed only for
@@ -108,7 +108,7 @@ def main():
             International Conference on Computer Vision. 2021.
 
     """
-    parser = argparse.ArgumentParser(description="Traversals evaluation script")
+    parser = argparse.ArgumentParser(description="WarpedGANSpace attribute space traversal script")
     parser.add_argument('-v', '--verbose', action='store_true', help="set verbose mode on")
     parser.add_argument('--exp', type=str, required=True, help="set experiment's model dir (created by `train.py` and "
                                                                "used by `traverse_latent_space.py`.)")
