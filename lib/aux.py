@@ -5,7 +5,9 @@ import json
 import argparse
 import numpy as np
 import torch
+import math
 from scipy.stats import truncnorm
+from PIL import Image, ImageDraw
 
 
 class TrainingStatTracker(object):
@@ -40,7 +42,7 @@ def sample_z(batch_size, dim_z, truncation=None):
     Args:
         batch_size (int)   : batch size (number of latent codes)
         dim_z (int)        : latent space dimensionality
-        truncation (float) : TODO: +++
+        truncation (float) : truncation parameter
 
     Returns:
         z (torch.Tensor)   : batch of latent codes
@@ -147,3 +149,112 @@ def sec2dhms(t):
     t %= 60
     seconds = t
     return "%02d days, %02d hours, %02d minutes, and %02d seconds" % (day, hour, minutes, seconds)
+
+
+def get_wh(img_paths):
+    """Get width and height of images in given list of paths. Images are expected to have the same resolution.
+
+    Args:
+        img_paths (list): list of image paths
+
+    Returns:
+        width (int)  : the common images width
+        height (int) : the common images height
+
+    """
+    img_widths = []
+    img_heights = []
+    for img in img_paths:
+        img_ = Image.open(img)
+        img_widths.append(img_.width)
+        img_heights.append(img_.height)
+
+    if len(set(img_widths)) == len(set(img_heights)) == 1:
+        return img_widths[0], img_heights[1]
+    else:
+        raise ValueError("Inconsistent image resolutions in {}".format(img_paths))
+
+
+def create_summarizing_gif(imgs_root, gif_filename, num_imgs=None, gif_size=None, gif_fps=30, gap=15, progress_bar_h=15,
+                           progress_bar_color=(252, 186, 3)):
+    """Create a summarizing GIF image given an images root directory (images generated across a certain latent path) and
+     the number of images to appear as a static sequence. The resolution of the resulting GIF image will be
+     (num_imgs * gif_size, gif_size). That is, a static sequence of `num_imgs` images will be depicted in front of the
+     animated GIF image (the latter will use all the available images in `imgs_root`).
+
+    Args:
+        imgs_root (str)            : directory of images (generated across a certain path)
+        gif_filename (str)         : filename of the resulting GIF image
+        num_imgs (int)             : number of images that will be used to build the static sequence before the
+                                     animated part of the GIF
+        gif_size (int)             : height of the final GIF image (its width will be equal to num_imgs * gif_size)
+        gif_fps (int)              : GIF frames per second
+        gap (int)                  : a gap between the static sequence and the animated path of the GIF
+        progress_bar_h (int)       : height of the progress bar depicted to the bottom of the animated part of the GIF
+                                     image. If a non-positive number is given, progress bar will be disabled.
+        progress_bar_color (tuple) : color of the progress bar
+
+    """
+    # Check if given images root directory exists
+    if not osp.isdir(imgs_root):
+        raise NotADirectoryError("Invalid directory: {}".format(imgs_root))
+
+    # Get all images under given root directory
+    path_images = [osp.join(imgs_root, dI) for dI in os.listdir(imgs_root) if osp.isfile(osp.join(imgs_root, dI))]
+    path_images.sort()
+
+    # Set number of images to appear in the static sequence of the GIF
+    num_images = len(path_images)
+    if num_imgs is None:
+        num_imgs = num_images
+    elif num_imgs > num_images:
+        num_imgs = num_images
+
+    # Get paths of static images
+    static_imgs = []
+    for i in range(0, len(path_images), math.ceil(len(path_images) / num_imgs)):
+        static_imgs.append(osp.join(imgs_root, '{:06}.jpg'.format(i)))
+    num_imgs = len(static_imgs)
+
+    # Get GIF image resolution
+    if gif_size is not None:
+        gif_w = gif_h = gif_size
+    else:
+        gif_w, gif_h = get_wh(static_imgs)
+
+    # Create PIL static image
+    static_img_pil = Image.new('RGB', size=(len(static_imgs) * gif_w, gif_h))
+    for i in range(len(static_imgs)):
+        static_img_pil.paste(Image.open(static_imgs[i]).resize((gif_w, gif_h)), (i * gif_w, 0))
+
+    # Create PIL GIF frames
+    gif_frames = []
+    for i in range(len(path_images)):
+        # Create new PIL frame
+        gif_frame_pil = Image.new('RGB', size=((num_imgs + 1) * gif_w + gap, gif_h), color=(255, 255, 255))
+
+        # Paste static image
+        gif_frame_pil.paste(static_img_pil, (0, 0))
+
+        # Paste current image
+        gif_frame_pil.paste(Image.open(path_images[i]).resize((gif_w, gif_h)), (num_imgs * gif_w + gap, 0))
+
+        # Draw progress bar
+        if progress_bar_h > 0:
+            gif_frame_pil_drawing = ImageDraw.Draw(gif_frame_pil)
+            progress = (i / len(path_images)) * gif_w
+            gif_frame_pil_drawing.rectangle(xy=[num_imgs * gif_w + gap, gif_h - progress_bar_h,
+                                                num_imgs * gif_w + gap + progress, gif_h],
+                                            fill=progress_bar_color)
+
+        # Append to GIF frames list
+        gif_frames.append(gif_frame_pil)
+
+    # Save GIF file
+    gif_frames[0].save(
+        fp=gif_filename,
+        append_images=gif_frames[1:],
+        save_all=True,
+        optimize=False,
+        loop=0,
+        duration=1000 // gif_fps)
