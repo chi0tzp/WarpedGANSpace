@@ -178,16 +178,16 @@ def get_wh(img_paths):
 def create_summarizing_gif(imgs_root, gif_filename, num_imgs=None, gif_size=None, gif_fps=30, gap=15, progress_bar_h=15,
                            progress_bar_color=(252, 186, 3)):
     """Create a summarizing GIF image given an images root directory (images generated across a certain latent path) and
-     the number of images to appear as a static sequence. The resolution of the resulting GIF image will be
-     (num_imgs * gif_size, gif_size). That is, a static sequence of `num_imgs` images will be depicted in front of the
-     animated GIF image (the latter will use all the available images in `imgs_root`).
+    the number of images to appear as a static sequence. The resolution of the resulting GIF image will be
+    ((num_imgs + 1) * gif_size, gif_size). That is, a static sequence of `num_imgs` images will be depicted in front of
+    the animated GIF image (the latter will use all the available images in `imgs_root`).
 
     Args:
         imgs_root (str)            : directory of images (generated across a certain path)
         gif_filename (str)         : filename of the resulting GIF image
         num_imgs (int)             : number of images that will be used to build the static sequence before the
                                      animated part of the GIF
-        gif_size (int)             : height of the final GIF image (its width will be equal to num_imgs * gif_size)
+        gif_size (int)             : height of the GIF image (its width will be equal to (num_imgs + 1) * gif_size)
         gif_fps (int)              : GIF frames per second
         gap (int)                  : a gap between the static sequence and the animated path of the GIF
         progress_bar_h (int)       : height of the progress bar depicted to the bottom of the animated part of the GIF
