@@ -12,14 +12,14 @@ Authors official PyTorch implementation of the **[WarpedGANSpace: Finding non-li
 
 ## Overview
 
-In this work, we try to discover *non-linear* interpretable paths in GAN latent space in an *unsupervised* and *model-agnostic* manner. For doing so, we model non-linear paths using RBF-based *warping functions*, which by warping the latent space, endow it with vector fields (their gradients).  We use the latter to traverse the latent space across the paths determined by the aforementioned vector fields for any given latent code.
+In this work, we try to discover *non-linear* interpretable paths in GAN latent space in an *unsupervised* and *model-agnostic* manner. For doing so, we model non-linear paths using RBF-based *warping functions*, which by warping the latent space, endow it with vector fields (i.e., their gradients).  We use the latter to traverse the latent space across the paths determined by the aforementioned vector fields for any given latent code.
 
 <p align="center">
 <img src="./figs/latent_space_warping.svg" alt="WarpedGANSpace Overview"/>
 </p>
 
 
-Each warping function is defined by a set of *N* support vectors (a "support set") and its gradient is given analytically as shown above. For a given warping function *f<sup>k</sup>* and a given latent code **z**,  we traverse the latent space as illustrated below: 
+Each warping function is defined by a set of *N* support vectors (which form a "support set") and its gradient is given analytically as shown above. For a given warping function *f<sup>k</sup>* and a given latent code **z**,  we traverse the latent space as illustrated below: 
 
 
 
@@ -28,9 +28,7 @@ Each warping function is defined by a set of *N* support vectors (a "support set
 </p>
 
 
-Each warping function gives rise to a family of non-linear paths. We learn a set of such warping functions (implemented by the *Warping Network*), i.e., a set of such non-linear path families, so as they are distinguishable to each other; that is, the image transformations that they produce should be easily distinguishable be a discriminator network (the *Reconstructor*). An overview of the method is given below.
-
-
+Each warping function gives rise to a family of non-linear paths. We learn a set of such warping functions (implemented by the *Warping Network*), i.e., a set of such non-linear path families, so as the image transformations that they produce are distinguishable to each other by a discriminator network (the *Reconstructor*). An overview of the method is given below.
 
 <p align="center">
 <img src="./figs/overview.svg" alt="WarpedGANSpace Overview"/>
@@ -121,7 +119,7 @@ where `models/` contains the weights for the reconstructor (`reconstructor.pt`) 
 After a *WarpedGANSpace* model is trained, the corresponding experiment's directory (i.e., `EXP_DIR`) can be found under `experiments/complete/`. The evaluation of the model includes the following steps:
 
 -  **Latent space traversals** For a given set of latent codes, we first generate images for all `K` paths (warping functions) and save the traversals (path latent codes and generated image sequences).
-- **Attribute space traversals** In the case of facial images (i.e., `ProgGAN` and `StyleGAN2`), for the latent traversals above, we calculate the corresponding attribute paths (i.e., pose, id scores, action units intensities, pose, etc.).
+- **Attribute space traversals** In the case of facial images (i.e., `ProgGAN` and `StyleGAN2`), for the latent traversals above, we calculate the corresponding attribute paths (i.e., pose, id scores, action units intensities, etc.).
 - **Interpretable paths discovery and ranking** [*To Appear Soon*]
 
 Before calculating latent space traversals, we need to create a pool of latent codes/images for the corresponding GAN type. This can be done using `sample_gan.py`. The name of the pool can be passed using `--pool`; if left empty `<gan_type>_<num_samples>` will be used instead. The pool of latent codes/images will be stored under `experiments/latent_codes/<gan_type>/`.  We will be referring to it as  `POOL` for the rest of this document. 
