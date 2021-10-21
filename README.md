@@ -120,7 +120,7 @@ After a *WarpedGANSpace* model is trained, the corresponding experiment's direct
 
 -  **Latent space traversals** For a given set of latent codes, we first generate images for all `K` paths (warping functions) and save the traversals (path latent codes and generated image sequences).
 - **Attribute space traversals** In the case of facial images (i.e., `ProgGAN` and `StyleGAN2`), for the latent traversals above, we calculate the corresponding attribute paths (i.e., pose, id scores, action units intensities, etc.).
-- **Interpretable paths discovery and ranking** [*To Appear Soon*]
+- **Interpretable paths discovery and ranking** For the attribute traversals above, we rank the discovered paths based on the how much correlated each path is with each attribute path.
 
 Before calculating latent space traversals, we need to create a pool of latent codes/images for the corresponding GAN type. This can be done using `sample_gan.py`. The name of the pool can be passed using `--pool`; if left empty `<gan_type>_<num_samples>` will be used instead. The pool of latent codes/images will be stored under `experiments/latent_codes/<gan_type>/`.  We will be referring to it as  `POOL` for the rest of this document. 
 
@@ -146,7 +146,7 @@ If `--gif` is set, a directory `experiments/complete/EXP_DIR/results/POOL/TRAVER
 
 ### Attribute space traversals
 
-Granted that the GAN at hand generates facial images (i.e., `ProgGAN` or `StyleGAN2`), we can traverse an *attribute space* by running `traverse_attribute_space.py` These attributes include the facial bounding box (in terms of width and height), an identity score, age, race, and gender estimation, pose estimation in terms of yaw, pitch, and roll angles, and 12 facial action units predictions. For more details, please check its basic usage by running `traverse_attribute_space.py -h`.
+Granted that the GAN at hand generates facial images (i.e., `ProgGAN` or `StyleGAN2`), we can traverse an *attribute space* by running `traverse_attribute_space.py` These attributes include the facial bounding box (in terms of width and height), an identity score, age, race, and gender estimation, pose estimation in terms of yaw, pitch, and roll angles, 12 facial action units predictions, and 5 CelebA attributes. For more details, please check its basic usage by running `traverse_attribute_space.py -h`.
 
 This script needs a `TRAVERSAL_CONFIG` found under `experiments/complete/EXP_DIR/results/POOL/`. Upon completion, the corresponding attribute paths will be stored under the same directory.
 
@@ -154,7 +154,9 @@ This script needs a `TRAVERSAL_CONFIG` found under `experiments/complete/EXP_DIR
 
 ### Interpretable paths discovery and ranking
 
-[*To Appear Soon*]
+After generating the attribute traversals, as described above, the discovered latent paths can be ranked based on the correlation they exhibit with respect to a set of attributes. In other words, based on how certain attributes change when traversing the discovered latent paths. 
+
+This can be done by using  `rank_interpretable_paths.py` for a given group of attributes. An attribute group, to which we will be referring to it as  `ATTR_GROUP` for the rest of this document, is a subset of the set of all available attributes (see `ATTRIBUTE_GROUPS` dictionary in `rank_interpretable_paths.py` and/or run `rank_interpretable_paths.py -h` for more details). The ranking results will be stored under `experiments/complete/EXP_DIR/results/POOL/interpretable_paths/ATTR_GROUP/` for the chosen group of attributes `ATTR_GROUP`. A markdown file the summarizes the results will be created under `experiments/complete/EXP_DIR/results/POOL/interpretable_paths/ATTR_GROUP/ATTRIBUTE` for each `ATTRIBUTE` in `ATTR_GROUP`. An example of such summarizing file is given [here](TODO).
 
 
 
