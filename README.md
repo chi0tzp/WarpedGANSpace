@@ -160,18 +160,6 @@ This can be done by using  `rank_interpretable_paths.py` for a given group of at
 
 
 
-## Qualitative results
-
-### [SNGAN (MNIST, AnimeFaces)](demo/SNGAN.md)
-
-### [BigGAN (ImageNet)](demo/BigGAN.md)
-
-### [ProgGAN (CelebA)](demo/ProgGAN.md)
-
-### [StyleGAN2 (FFHQ)](demo/StyleGAN2.md)
-
-
-
 ## Demo
 
 [*To Appear soon*]

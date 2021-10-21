@@ -1,3 +1,0 @@
-# BigGAN pretrained on ImageNet
-
- 
