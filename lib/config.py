@@ -42,7 +42,6 @@ GAN_WEIGHTS = {
     'BigGAN': {
         'url': 'https://www.dropbox.com/s/z82rwv65lwry0ox/pretrained_biggan_generator.tar?dl=1',
         'sha256sum': '748f4d85dff5e89a106a74b7f8c80a5a52cb735680356a00da025695c7b21198',
-        # TODO: BigGAN image resolution?
         'weights': {
             GAN_RESOLUTIONS['BigGAN']: 'models/pretrained/generators/BigGAN/G_ema.pth'
         }
@@ -87,6 +86,12 @@ BigGAN_239_ResNet_K120_D256_LearnGammas_eps0d15_0d25 = (
 ProgGAN_ResNet_K200_D512_LearnGammas_eps0d1_0d2 = (
     'https://www.dropbox.com/s/kw9ozsgo5emx2ef/ProgGAN-ResNet-K200-D512-LearnGammas-eps0.1_0.2.tar?dl=1',
     '088d7a415ad5a9d3813135dea3b7eda57fe4cedeb345fdad89ab1074af57c09e'
+)
+
+# StyleGAN2-1024-W-ResNet-K200-D512-LearnGammas-eps0.1_0.2.tar
+StyleGAN2_1024_W_ResNet_K200_D512_LearnGammas_eps0d1_0d2 = (
+    'https://www.dropbox.com/s/9m4a3cfu5e91dky/StyleGAN2-1024-W-ResNet-K200-D512-LearnGammas-eps0.1_0.2.tar?dl=1',
+    '0c9c488bce458e051cdb2ff8baaa0e26518dc9561e8607a78ce16216699c35c8'
 )
 
 ########################################################################################################################

@@ -8,7 +8,8 @@ import time
 import urllib.request
 from lib import GAN_WEIGHTS, SFD, ARCFACE, FAIRFACE, HOPENET, AUDET, CELEBA_ATTRIBUTES, \
     SNGAN_MNIST_LeNet_K64_D128_LearnGammas_eps0d15_0d25, SNGAN_AnimeFaces_LeNet_K64_D128_LearnGammas_eps0d25_0d35, \
-    BigGAN_239_ResNet_K120_D256_LearnGammas_eps0d15_0d25, ProgGAN_ResNet_K200_D512_LearnGammas_eps0d1_0d2
+    BigGAN_239_ResNet_K120_D256_LearnGammas_eps0d15_0d25, ProgGAN_ResNet_K200_D512_LearnGammas_eps0d1_0d2, \
+    StyleGAN2_1024_W_ResNet_K200_D512_LearnGammas_eps0d1_0d2
 
 
 def reporthook(count, block_size, total_size):
@@ -177,6 +178,11 @@ def main():
         print("  \\__.ProgGAN_ResNet_K200_D512_LearnGammas_eps0.1_0.2")
         download(src=ProgGAN_ResNet_K200_D512_LearnGammas_eps0d1_0d2[0],
                  sha256sum=ProgGAN_ResNet_K200_D512_LearnGammas_eps0d1_0d2[1],
+                 dest=pretrained_warpedganspace_root)
+
+        print("  \\__.StyleGAN2_1024_W_ResNet_K200_D512_LearnGammas_eps0d1_0d2")
+        download(src=StyleGAN2_1024_W_ResNet_K200_D512_LearnGammas_eps0d1_0d2[0],
+                 sha256sum=StyleGAN2_1024_W_ResNet_K200_D512_LearnGammas_eps0d1_0d2[1],
                  dest=pretrained_warpedganspace_root)
 
 
