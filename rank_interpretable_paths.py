@@ -6,6 +6,7 @@ import pandas as pd
 import json
 from lib import create_summarizing_gif
 
+
 ########################################################################################################################
 ## The following attributes are available (as long as they have been used to traverse attribute space using           ##
 ## `traverse_attribute_space.py`):                                                                                    ##
@@ -43,8 +44,6 @@ ATTRIBUTE_GROUPS = {
     'Smiling-CelebA': ('celeba_smiling', 'identity', 'gender', 'age', 'race'),
     # Brow Lowerer
     'Brow-Lowerer-AU4': ('au_4_Brow_Lowerer', 'identity', 'gender', 'age', 'race'),
-    # Beard
-    'Beard': ('celeba_beard', 'identity', 'race', 'gender'),
     # Bangs
     'Bangs': ('celeba_bangs', 'identity')
 }
@@ -95,8 +94,9 @@ def l1(x):
     return x_
 
 
-def save_results(attributes, attr_idx_corr, metric, interpretable_paths_dict, create_gifs=True, top_k=3, num_imgs=7,
-                 gif_size=256, gif_fps=30, hashes_root=None, hashes=None, interpretable_paths_root=None):
+def save_results(attributes, attr_idx_corr, metric, interpretable_paths_dict, summary_md_dict, create_gifs=True,
+                 top_k=3, num_imgs=7, gif_size=256, gif_fps=30, hashes_root=None, hashes=None,
+                 interpretable_paths_root=None):
     """Save interpretable paths results and create summarizing GIFs.
 
     Args:
@@ -104,6 +104,7 @@ def save_results(attributes, attr_idx_corr, metric, interpretable_paths_dict, cr
         attr_idx_corr (np.ndarray)      : attributes-to-path correlation matrix
         metric (str)                    : choose metric; correlation (corr) or l1-normalized correlation (corr_l1)
         interpretable_paths_dict (dict) : interpretable paths dictionary
+        summary_md_dict (dict)          : summary md dictionary
         create_gifs (bool)              : create and save summarizing GIF files
         top_k (int)                     : create summarizing GIF files for the top-k interpretable paths for each
                                           attribute and for each latent code
@@ -139,6 +140,9 @@ def save_results(attributes, attr_idx_corr, metric, interpretable_paths_dict, cr
         attr_idx_corr_df_sorted_by_t = attr_idx_corr_df.sort_values(by=t, ascending=False)
         first_rows.append(attr_idx_corr_df_sorted_by_t.to_numpy()[0, :])
 
+        # Get ranked interpretable paths
+        interpretable_paths_dict[metric][attributes[t]] = attr_idx_corr_df_sorted_by_t.index.tolist()
+
         # Get ids of the top-k paths
         for i in range(top_k):
             top_k_paths[i].append(attr_idx_corr_df_sorted_by_t.index.tolist()[i])
@@ -171,17 +175,16 @@ def save_results(attributes, attr_idx_corr, metric, interpretable_paths_dict, cr
                                            gif_size=gif_size,
                                            gif_fps=gif_fps)
                     # Update interpretable paths dictionary
-                    interpretable_paths_dict[attr][h][metric][k+1] = top_k_paths[k][a]
+                    summary_md_dict[attr][h][metric][k+1] = top_k_paths[k][a]
 
 
-def create_summary_md_file(attr_group, interpretable_paths_dict, metric, top_k=3, hashes=None,
-                           interpretable_paths_root=None):
+def create_summary_md_file(attr_group, summary_md_dict, metric, top_k=3, hashes=None, interpretable_paths_root=None):
     """Create summary .md file for the given attributes group. For all given attributes, show the top-k interpretable
     paths for each latent code (hash).
 
     Args:
         attr_group (str)                : attributes group
-        interpretable_paths_dict (dict) : interpretable paths dictionary
+        summary_md_dict (dict)          : summary md dictionary
         metric (str)                    : choose metric; correlation (corr) or l1-normalized correlation (corr_l1)
         top_k (int)                     : create summarizing GIF files for the top-k interpretable paths for each
                                           attribute and for each latent code
@@ -203,9 +206,9 @@ def create_summary_md_file(attr_group, interpretable_paths_dict, metric, top_k=3
                 f.write("#### Metric: {}\n".format(m))
                 f.write("<p align=\"center\">\n")
                 for k in range(top_k):
-                    path_id = interpretable_paths_dict[attr][h][m][k+1]
+                    path_id = summary_md_dict[attr][h][m][k+1]
                     gif_file = osp.join(m, attr, "{}_{}_{}_{}.gif".format(attr, k+1, path_id, h))
-                    gif_mouseover = "top-{} interpretable path [path_id: {}] [{}/{}]".format(k + 1, path_id, attr, h)
+                    gif_mouseover = "top-{} interpretable path [path_id: {}] for {}".format(k + 1, path_id, attr)
                     f.write("<img src=\"{}\" title=\"{}\"/>\n".format(gif_file, gif_mouseover))
                 f.write("</p>\n")
     f.close()
@@ -403,6 +406,14 @@ def main():
 
         # Initialize interpretable paths dictionary
         interpretable_paths_dict = dict()
+        for m in ('corr', 'corr_l1'):
+            m_dict = dict()
+            for a in attributes:
+                m_dict.update({a: []})
+            interpretable_paths_dict.update({m: m_dict})
+
+        # Initialize summary md dictionary
+        summary_md_dict = dict()
         for a in attributes:
             a_dict = dict()
             for h in hashes:
@@ -414,7 +425,7 @@ def main():
                     a_h_dict.update({m: a_h_m_dict})
                 a_h_dict.update({h: a_h_dict})
                 a_dict.update({h: a_h_dict})
-            interpretable_paths_dict.update({a: a_dict})
+            summary_md_dict.update({a: a_dict})
 
         if args.metric in ('corr', 'corr+corr_l1'):
             # Save attribute correlation results
@@ -425,6 +436,7 @@ def main():
                          attr_idx_corr=np.abs(ATTRIBUTES_IDX_CORR),
                          metric='corr',
                          interpretable_paths_dict=interpretable_paths_dict,
+                         summary_md_dict=summary_md_dict,
                          create_gifs=args.gif,
                          top_k=args.top_k,
                          num_imgs=args.num_imgs,
@@ -443,6 +455,7 @@ def main():
                          attr_idx_corr=l1(np.abs(ATTRIBUTES_IDX_CORR)),
                          metric='corr_l1',
                          interpretable_paths_dict=interpretable_paths_dict,
+                         summary_md_dict=summary_md_dict,
                          create_gifs=args.gif,
                          top_k=args.top_k,
                          num_imgs=args.num_imgs,
@@ -452,18 +465,24 @@ def main():
                          hashes=hashes,
                          interpretable_paths_root=interpretable_paths_root)
 
-        # TODO: Save `interpretable_paths_dict` to disk
-
         if args.verbose:
             print("           \\__.Create summary md file...")
 
         create_summary_md_file(attr_group=args.attr_group,
-                               interpretable_paths_dict=interpretable_paths_dict,
+                               summary_md_dict=summary_md_dict,
                                metric=args.metric,
                                top_k=args.top_k,
                                hashes=hashes,
                                interpretable_paths_root=interpretable_paths_root)
 
+        # Save interpretable paths dictionary
+        with open(osp.join(interpretable_paths_root, 'interpretable_paths.json'), 'w') as fp:
+            json.dump(interpretable_paths_dict, fp)
+
 
 if __name__ == '__main__':
     main()
+
+
+
+
