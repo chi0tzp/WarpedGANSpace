@@ -15,15 +15,12 @@ metric="corr+corr_l1"
 declare -a EXPERIMENTS=("experiments/complete/StyleGAN2-1024-W-ResNet-K200-D512-LearnGammas-eps0.1_0.2")
 
 # Define attribute groups (see `rank_interpretable_paths.py`)
-declare -a ATTRIBUTE_GROUPS=("Face-WH"
-                             "Age-FareFace"
+declare -a ATTRIBUTE_GROUPS=("Age-FareFace"
                              "Age-CelebA"
                              "Gender"
                              "Rotation"
                              "Smiling-AU12"
-                             "Smiling-CelebA"
-                             "Brow-Lowerer-AU4"
-                             "Bangs")
+                             "Smiling-CelebA")
 
 # Traverse latent and attribute spaces, and rank interpretable paths for the given experiments
 for exp in "${EXPERIMENTS[@]}"
