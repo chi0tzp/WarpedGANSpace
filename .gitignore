@@ -6,7 +6,7 @@ warped-gan-space/
 *.pyc
 __pycache__/
 */__pycache__/
-dev/.ipynb_checkpoints/
+dev/
 figs/inkscape/
 models/pretrained/
 
