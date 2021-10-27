@@ -31,7 +31,7 @@ def main():
     if not osp.isfile(checkpoint_file):
         raise FileNotFoundError("Checkpoint file not found: {}".format(checkpoint_file))
 
-    print("#. Convert checkpoint file into support sets and reconstructor wrights files...")
+    print("#. Convert checkpoint file into support sets and reconstructor weight files...")
 
     # Load checkpoint file
     checkpoint_dict = torch.load(checkpoint_file)
