@@ -31,9 +31,9 @@ class DataParallelPassthrough(nn.DataParallel):
 
 def main():
     """A script for sampling from a pre-trained GAN latent space and generating images. The generated images, along with
-     the corresponding latent codes (in torch.Tensor format), will be stored under
+    the corresponding latent codes (in torch.Tensor format), will be stored under
         `experiments/latent_codes/<gan_type>/<pool>/`.
-    If no pool name is given, then `<gan_type><num_samples>/` will be used instead.
+    If no pool name is given, then `<gan_type>_<num_samples>/` will be used instead.
 
     Options:
         -v, --verbose           : set verbose mode on
@@ -44,7 +44,6 @@ def main():
         --biggan-target-classes : set list of classes to use for conditional BigGAN (see BIGGAN_CLASSES in
                                   lib/config.py). E.g., --biggan-target-classes 14 239.
         --stylegan2-resolution  : set StyleGAN2 generator output images resolution (256 or 1024)
-        --stylegan2-w-space     : sample in StyleGAN2's W-space (use Z-space otherwise)
         --num-samples           : set the number of latent codes to sample for generating images
         --pool                  : set name of the latent codes/images pool.
         --cuda                  : use CUDA (default)
@@ -58,7 +57,6 @@ def main():
     parser.add_argument('--biggan-target-classes', nargs='+', type=int, help="list of classes for conditional BigGAN")
     parser.add_argument('--stylegan2-resolution', type=int, default=1024, choices=(256, 1024),
                         help="StyleGAN2 image resolution")
-    parser.add_argument('--stylegan2-w-space', action='store_true', help="sample in StyleGAN2's W-space")
     parser.add_argument('--num-samples', type=int, default=4, help="number of latent codes to sample")
     parser.add_argument('--pool', type=str, help="name of latent codes/images pool")
     parser.add_argument('--cuda', dest='cuda', action='store_true', help="use CUDA during training")
@@ -123,8 +121,7 @@ def main():
     # -- StyleGAN2
     elif args.gan_type == 'StyleGAN2':
         G = build_stylegan2(resolution=args.stylegan2_resolution,
-                            pretrained_gan_weights=GAN_WEIGHTS[args.gan_type]['weights'][args.stylegan2_resolution],
-                            w_space=args.stylegan2_w_space)
+                            pretrained_gan_weights=GAN_WEIGHTS[args.gan_type]['weights'][args.stylegan2_resolution])
     # -- Spectrally Normalised GAN (SNGAN)
     else:
         G = build_sngan(pretrained_gan_weights=GAN_WEIGHTS[args.gan_type]['weights'][GAN_RESOLUTIONS[args.gan_type]],
