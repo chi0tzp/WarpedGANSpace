@@ -16,7 +16,7 @@ def main():
         --biggan-target-classes    : set list of classes to use for conditional BigGAN (see BIGGAN_CLASSES in
                                      lib/config.py). E.g., --biggan-target-classes 14 239.
         --stylegan2-resolution     : set StyleGAN2 generator output images resolution:  256 or 1024 (default: 1024)
-        --stylegan2-w-space        : search latent paths in StyleGAN2's W-space (otherwise, look in Z-space)
+        --shift-in-w-space         : search latent paths in StyleGAN2's W-space (otherwise, look in Z-space)
 
         ===[ Support Sets (S) ]=========================================================================================
         -K, --num-support-sets     : set number of support sets; i.e., number of warping functions -- number of
@@ -56,7 +56,7 @@ def main():
     parser.add_argument('--biggan-target-classes', nargs='+', type=int, help="list of classes for conditional BigGAN")
     parser.add_argument('--stylegan2-resolution', type=int, default=1024, choices=(256, 1024),
                         help="StyleGAN2 image resolution")
-    parser.add_argument('--stylegan2-w-space', action='store_true', help="search latent paths in StyleGAN2's W-space")
+    parser.add_argument('--shift-in-w-space', action='store_true', help="search latent paths in StyleGAN2's W-space")
 
     # === Support Sets (S) ======================================================================== #
     parser.add_argument('-K', '--num-support-sets', type=int, help="set number of support sets (warping functions)")
@@ -116,7 +116,7 @@ def main():
     print("#. Build GAN generator model G and load with pre-trained weights...")
     print("  \\__GAN type: {}".format(args.gan_type))
     if args.gan_type == 'StyleGAN2':
-        print("  \\__Sample in {}-space".format('W' if args.stylegan2_w_space else 'Z'))
+        print("  \\__Search for paths in {}-space".format('W' if args.shift_in_w_space else 'Z'))
     if args.z_truncation:
         print("  \\__Input noise truncation: {}".format(args.z_truncation))
     print("  \\__Pre-trained weights: {}".format(
@@ -134,7 +134,7 @@ def main():
     elif args.gan_type == 'StyleGAN2':
         G = build_stylegan2(pretrained_gan_weights=GAN_WEIGHTS[args.gan_type]['weights'][args.stylegan2_resolution],
                             resolution=args.stylegan2_resolution,
-                            w_space=args.stylegan2_w_space)
+                            shift_in_w_space=args.shift_in_w_space)
     # === Spectrally Normalised GAN (SNGAN) ===
     else:
         G = build_sngan(pretrained_gan_weights=GAN_WEIGHTS[args.gan_type]['weights'][GAN_RESOLUTIONS[args.gan_type]],

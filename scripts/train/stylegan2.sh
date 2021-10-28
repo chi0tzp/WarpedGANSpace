@@ -13,16 +13,16 @@ num_support_dipoles=512
 min_shift_magnitude=0.1
 max_shift_magnitude=0.2
 reconstructor_type="ResNet"
-batch_size=14
+batch_size=12
 max_iter=150000
 tensorboard=true
 # ================================
 
 
 # Run training script
-stylegan2_w_space=""
+shift_in_w_space=""
 if $w_space ; then
-  stylegan2_w_space="--stylegan2-w-space"
+  shift_in_w_space="--shift-in-w-space"
 fi
 
 learn_a=""
@@ -44,7 +44,7 @@ python train.py $tb \
                 --gan-type=${gan_type} \
                 --z-truncation=${z_truncation} \
                 --stylegan2-resolution=${stylegan2_resolution} \
-                $stylegan2_w_space \
+                $shift_in_w_space \
                 --reconstructor-type=${reconstructor_type} \
                 $learn_a \
                 $learn_g \

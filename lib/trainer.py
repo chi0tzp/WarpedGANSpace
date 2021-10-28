@@ -193,9 +193,11 @@ class Trainer(object):
 
             # Sample latent codes from standard (truncated) Gaussian -- torch.Size([batch_size, generator.dim_z])
             z = sample_z(batch_size=self.params.batch_size, dim_z=generator.dim_z, truncation=self.params.z_truncation)
-
             if self.use_cuda:
                 z = z.cuda()
+
+            # Generate images for the given latent codes
+            img = generator(z)
 
             # Sample indices of shift vectors (`self.params.batch_size` out of `self.params.num_support_sets`)
             target_support_sets_indices = torch.randint(0, self.params.num_support_sets, [self.params.batch_size])
@@ -228,13 +230,12 @@ class Trainer(object):
             for i, (index, val) in enumerate(zip(target_support_sets_indices, target_shift_magnitudes)):
                 support_sets_mask[i][index] += 1.0
 
-            # Get shift vectors
-            shift = target_shift_magnitudes.reshape(-1, 1) * support_sets(support_sets_mask, z)
+            # Calculate shift vectors for the given latent codes -- in the case of StyleGAN2, if --shift-in-w-space is
+            # set, the calculate of the shifts will be done in the W-space
+            shift = target_shift_magnitudes.reshape(-1, 1) * \
+                support_sets(support_sets_mask, generator.get_w(z) if self.params.shift_in_w_space else z)
 
-            # Generate images for latent codes z and shifted latent codes z + shift. In the case of StyleGAN2, when
-            # `args.stylegan2_w_space`, latent codes and shifts are considered in the W-space, even though we keep the
-            # same notation below.
-            img = generator(z)
+            # Generate images the shifted latent codes
             img_shifted = generator(z, shift)
 
             # Predict support sets indices and shift magnitudes

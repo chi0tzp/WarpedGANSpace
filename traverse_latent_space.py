@@ -42,7 +42,7 @@ def tensor2image(tensor, img_size=None, adaptive=False):
             return ToPILImage()((255 * tensor.cpu().detach()).to(torch.uint8))
 
 
-def build_gan(gan_type, target_classes, stylegan2_resolution, stylegan2_w_space, use_cuda, multi_gpu):
+def build_gan(gan_type, target_classes, stylegan2_resolution, shift_in_w_space, use_cuda, multi_gpu):
     # -- BigGAN
     if gan_type == 'BigGAN':
         G = build_biggan(pretrained_gan_weights=GAN_WEIGHTS[gan_type]['weights'][GAN_RESOLUTIONS[gan_type]],
@@ -54,7 +54,7 @@ def build_gan(gan_type, target_classes, stylegan2_resolution, stylegan2_w_space,
     elif gan_type == 'StyleGAN2':
         G = build_stylegan2(pretrained_gan_weights=GAN_WEIGHTS[gan_type]['weights'][stylegan2_resolution],
                             resolution=stylegan2_resolution,
-                            w_space=stylegan2_w_space)
+                            shift_in_w_space=shift_in_w_space)
     # -- Spectrally Normalised GAN (SNGAN)
     else:
         G = build_sngan(pretrained_gan_weights=GAN_WEIGHTS[gan_type]['weights'][GAN_RESOLUTIONS[gan_type]],
@@ -258,7 +258,7 @@ def main():
     G = build_gan(gan_type=gan_type,
                   target_classes=args_json.__dict__["biggan_target_classes"],
                   stylegan2_resolution=args_json.__dict__["stylegan2_resolution"],
-                  stylegan2_w_space=args_json.__dict__["stylegan2_w_space"],
+                  shift_in_w_space=args_json.__dict__["shift_in_w_space"],
                   use_cuda=use_cuda,
                   multi_gpu=multi_gpu).eval()
 
@@ -394,7 +394,7 @@ def main():
                     support_sets_mask.cuda()
                 # Get latent space shift vector
                 with torch.no_grad():
-                    shift = args.eps * S(support_sets_mask, z)
+                    shift = args.eps * S(support_sets_mask, G.get_w(z) if args_json.__dict__["shift_in_w_space"] else z)
 
                 # Update z
                 z = z + shift
@@ -417,7 +417,7 @@ def main():
                     support_sets_mask.cuda()
                 # Get latent space shift vector
                 with torch.no_grad():
-                    shift = -args.eps * S(support_sets_mask, z)
+                    shift = -args.eps * S(support_sets_mask, G.get_w(z) if args_json.__dict__["shift_in_w_space"] else z)
 
                 # Update z
                 z = z + shift

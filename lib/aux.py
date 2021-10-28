@@ -59,7 +59,7 @@ def create_exp_dir(args):
 
     Experiment's directory name format:
 
-        <gan_type>(-<stylegan2_resolution>)(-stylegan2_w_space)-<reconstructor_type>-K<num_support_sets>-
+        <gan_type>(-<stylegan2_resolution>)(-{Z,W})-<reconstructor_type>-K<num_support_sets>-
             D<num_support_dipoles>(-LearnAlphas)(-LearnGammas)-eps<min_shift_magnitude>_<max_shift_magnitude>
     E.g.:
 
@@ -72,7 +72,7 @@ def create_exp_dir(args):
     exp_dir = "{}".format(args.gan_type)
     if args.gan_type == 'StyleGAN2':
         exp_dir += '-{}'.format(args.stylegan2_resolution)
-        if args.stylegan2_w_space:
+        if args.shift_in_w_space:
             exp_dir += '-W'
         else:
             exp_dir += '-Z'

@@ -70,28 +70,28 @@ GAN_WEIGHTS = {
 ########################################################################################################################
 SNGAN_MNIST_LeNet_K64_D128_LearnGammas_eps0d15_0d25 = (
     'https://www.dropbox.com/s/52xsrcbhmpvqr93/SNGAN_MNIST-LeNet-K64-D128-LearnGammas-eps0.15_0.25.tar?dl=1',
-    'eb818cb022f868a963a04e2cc39939b74f419c03f694766b83efa06e13c780c9'
+    '639e77d6a789f828f81671e8c5123829b8d2a639966b1868c9c5e8c983310067'
 )
 
 SNGAN_AnimeFaces_LeNet_K64_D128_LearnGammas_eps0d25_0d35 = (
     'https://www.dropbox.com/s/5m97rd577yze80e/SNGAN_AnimeFaces-LeNet-K64-D128-LearnGammas-eps0.25_0.35.tar?dl=1',
-    'd0af35de792bfc8d3007401d4579251bb1431a3c420feda70b9a051249ef1175'
+    'ea45f72ba0c2105eba7214c9cb7e94fec85fcec7a3b14dd90fba3e16375f1a80'
 )
 
 BigGAN_239_ResNet_K120_D256_LearnGammas_eps0d15_0d25 = (
     'https://www.dropbox.com/s/0ebk7qtdm4x5qce/BigGAN-239-ResNet-K120-D256-LearnGammas-eps0.15_0.25.tar?dl=1',
-    '2b0cca6c193a6a8614ada11988ec68f081856348f375d5513b1aa726ba7137b0'
+    'c873e1fde11aede2d5454c060a712bad8791a9479789efcf895a089d17f4d4f8'
 )
 
 ProgGAN_ResNet_K200_D512_LearnGammas_eps0d1_0d2 = (
     'https://www.dropbox.com/s/kw9ozsgo5emx2ef/ProgGAN-ResNet-K200-D512-LearnGammas-eps0.1_0.2.tar?dl=1',
-    '088d7a415ad5a9d3813135dea3b7eda57fe4cedeb345fdad89ab1074af57c09e'
+    'ff22787a6bf179d6423ce8b67045476ec0f1b7bbb7837af328057e656a9fe78e'
 )
 
-# StyleGAN2-1024-W-ResNet-K200-D512-LearnGammas-eps0.1_0.2.tar
+# REVIEW: Temporarily deactivated (new model to appear soon)
 StyleGAN2_1024_W_ResNet_K200_D512_LearnGammas_eps0d1_0d2 = (
     'https://www.dropbox.com/s/9m4a3cfu5e91dky/StyleGAN2-1024-W-ResNet-K200-D512-LearnGammas-eps0.1_0.2.tar?dl=1',
-    '0c9c488bce458e051cdb2ff8baaa0e26518dc9561e8607a78ce16216699c35c8'
+    '???'
 )
 
 ########################################################################################################################
