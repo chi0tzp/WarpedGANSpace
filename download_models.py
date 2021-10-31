@@ -180,11 +180,10 @@ def main():
                  sha256sum=ProgGAN_ResNet_K200_D512_LearnGammas_eps0d1_0d2[1],
                  dest=pretrained_warpedganspace_root)
 
-        # REVIEW: Temporarily deactivated (new model to appear soon)
-        # print("  \\__.StyleGAN2_1024_W_ResNet_K200_D512_LearnGammas_eps0d1_0d2")
-        # download(src=StyleGAN2_1024_W_ResNet_K200_D512_LearnGammas_eps0d1_0d2[0],
-        #          sha256sum=StyleGAN2_1024_W_ResNet_K200_D512_LearnGammas_eps0d1_0d2[1],
-        #          dest=pretrained_warpedganspace_root)
+        print("  \\__.StyleGAN2_1024_W_ResNet_K200_D512_LearnGammas_eps0d1_0d2")
+        download(src=StyleGAN2_1024_W_ResNet_K200_D512_LearnGammas_eps0d1_0d2[0],
+                 sha256sum=StyleGAN2_1024_W_ResNet_K200_D512_LearnGammas_eps0d1_0d2[1],
+                 dest=pretrained_warpedganspace_root)
 
 
 if __name__ == '__main__':

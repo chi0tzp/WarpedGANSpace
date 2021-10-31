@@ -88,10 +88,9 @@ ProgGAN_ResNet_K200_D512_LearnGammas_eps0d1_0d2 = (
     'ff22787a6bf179d6423ce8b67045476ec0f1b7bbb7837af328057e656a9fe78e'
 )
 
-# REVIEW: Temporarily deactivated (new model to appear soon)
 StyleGAN2_1024_W_ResNet_K200_D512_LearnGammas_eps0d1_0d2 = (
     'https://www.dropbox.com/s/9m4a3cfu5e91dky/StyleGAN2-1024-W-ResNet-K200-D512-LearnGammas-eps0.1_0.2.tar?dl=1',
-    '???'
+    'b7918d339685299666c00c8dc2cc46b88d1f5824bd8ae8bcf24b4b60d98ea75c'
 )
 
 ########################################################################################################################

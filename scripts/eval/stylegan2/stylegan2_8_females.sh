@@ -12,7 +12,7 @@ metric="corr+corr_l1"
 # =====================
 
 # Define experiment directories list
-declare -a EXPERIMENTS=("experiments/complete/StyleGAN2-1024-W-ResNet-K200-D512-LearnGammas-eps0.1_0.2_RANDOM")
+declare -a EXPERIMENTS=("experiments/complete/StyleGAN2-1024-W-ResNet-K200-D512-LearnGammas-eps0.1_0.2")
 
 # Define attribute groups (see `rank_interpretable_paths.py`)
 declare -a ATTRIBUTE_GROUPS=("Age-FareFace"
@@ -44,16 +44,16 @@ do
   # ------------------------------------------------------------------------------------------------------------------ #
 
   # --- Rank interpretable paths for all given attribute groups ------------------------------------------------------ #
-#  for attr_group in "${ATTRIBUTE_GROUPS[@]}"
-#  do
-#    python rank_interpretable_paths.py -v --exp="${exp}" \
-#                                          --pool=${pool} \
-#                                          --eps=${eps} \
-#                                          --shift-steps=${shift_steps} \
-#                                          --num-imgs=${num_imgs} \
-#                                          --gif-size=${gif_size} \
-#                                          --attr-group="${attr_group}" \
-#                                          --metric=${metric}
-#  done
+  for attr_group in "${ATTRIBUTE_GROUPS[@]}"
+  do
+    python rank_interpretable_paths.py -v --exp="${exp}" \
+                                          --pool=${pool} \
+                                          --eps=${eps} \
+                                          --shift-steps=${shift_steps} \
+                                          --num-imgs=${num_imgs} \
+                                          --gif-size=${gif_size} \
+                                          --attr-group="${attr_group}" \
+                                          --metric=${metric}
+  done
   # ------------------------------------------------------------------------------------------------------------------ #
 done
