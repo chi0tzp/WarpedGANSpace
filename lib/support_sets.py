@@ -115,7 +115,10 @@ class SupportSets(nn.Module):
 
         # Calculate grad of f at z
         D = z.unsqueeze(dim=1).repeat(1, 2 * self.num_support_dipoles, 1) - support_sets_batch
-        grad_f = -2 * (alphas_batch * torch.exp(-gammas_batch * (torch.norm(D, dim=2) ** 2).unsqueeze(dim=2)) * D).sum(dim=1)
 
+        # REVIEW: Fix `grad_f` formula
+        # grad_f = -2 * (alphas_batch * torch.exp(-gammas_batch * (torch.norm(D, dim=2) ** 2).unsqueeze(dim=2)) * D).sum(dim=1)
+        grad_f = -2 * (alphas_batch * gammas_batch * torch.exp(-gammas_batch * (torch.norm(D, dim=2) ** 2).unsqueeze(dim=2)) * D).sum(dim=1)
+        
         # Return normalized grad of f at z
         return grad_f / torch.norm(grad_f, dim=1, keepdim=True)
