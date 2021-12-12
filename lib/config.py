@@ -69,28 +69,28 @@ GAN_WEIGHTS = {
 ##                                                                                                                    ##
 ########################################################################################################################
 SNGAN_MNIST_LeNet_K64_D128_LearnGammas_eps0d15_0d25 = (
-    'https://www.dropbox.com/s/52xsrcbhmpvqr93/SNGAN_MNIST-LeNet-K64-D128-LearnGammas-eps0.15_0.25.tar?dl=1',
-    '639e77d6a789f828f81671e8c5123829b8d2a639966b1868c9c5e8c983310067'
+    'https://www.dropbox.com/s/sn16j9w6h35nyqv/SNGAN_MNIST-LeNet-K64-D128-LearnGammas-eps0.15_0.25.tar?dl=1',
+    '29212be9a23f4906ce0ef6d3735cd9bdd9f12825f63187a5d1dd6a153fc85a95'
 )
 
 SNGAN_AnimeFaces_LeNet_K64_D128_LearnGammas_eps0d25_0d35 = (
-    'https://www.dropbox.com/s/5m97rd577yze80e/SNGAN_AnimeFaces-LeNet-K64-D128-LearnGammas-eps0.25_0.35.tar?dl=1',
-    'ea45f72ba0c2105eba7214c9cb7e94fec85fcec7a3b14dd90fba3e16375f1a80'
+    'https://www.dropbox.com/s/dlmqk8oes723sq8/SNGAN_AnimeFaces-LeNet-K64-D128-LearnGammas-eps0.25_0.35.tar?dl=1',
+    '211a219b66e77844d5babccdf2028daed647e15696d6bb0a7d9b833b110bc245'
 )
 
 BigGAN_239_ResNet_K120_D256_LearnGammas_eps0d15_0d25 = (
-    'https://www.dropbox.com/s/0ebk7qtdm4x5qce/BigGAN-239-ResNet-K120-D256-LearnGammas-eps0.15_0.25.tar?dl=1',
-    'c873e1fde11aede2d5454c060a712bad8791a9479789efcf895a089d17f4d4f8'
+    'https://www.dropbox.com/s/8v72vmehw214u8c/BigGAN-239-ResNet-K120-D256-LearnGammas-eps0.1_0.2.tar?dl=1',
+    'df346b0edb83d11add784bcbb915a78695f6c29435ea1b6165eb70166f5b3995'
 )
 
 ProgGAN_ResNet_K200_D512_LearnGammas_eps0d1_0d2 = (
     'https://www.dropbox.com/s/kw9ozsgo5emx2ef/ProgGAN-ResNet-K200-D512-LearnGammas-eps0.1_0.2.tar?dl=1',
-    'ff22787a6bf179d6423ce8b67045476ec0f1b7bbb7837af328057e656a9fe78e'
+    '867daac2b516f1ab1282c85bd9a8a14db07cb9095495a2d1591c0efe9b20fcac'
 )
 
 StyleGAN2_1024_W_ResNet_K200_D512_LearnGammas_eps0d1_0d2 = (
-    'https://www.dropbox.com/s/9m4a3cfu5e91dky/StyleGAN2-1024-W-ResNet-K200-D512-LearnGammas-eps0.1_0.2.tar?dl=1',
-    'b7918d339685299666c00c8dc2cc46b88d1f5824bd8ae8bcf24b4b60d98ea75c'
+    'https://www.dropbox.com/s/w2bnb1jukcyx2fk/StyleGAN2-1024-W-ResNet-K200-D512-LearnGammas-eps0.1_0.2.tar?dl=1',
+    '2579db60d2f04065f05d3aa86216c0a6f7b04022f2623ba770311c3c3c4a88de'
 )
 
 ########################################################################################################################
