@@ -3,16 +3,9 @@ from torch import nn
 
 
 class SupportSets(nn.Module):
-    """Support Sets class
-
-        TODO: K = as many as the desired interpretable paths
-            Each support set contains `num_support_dipoles` support vector dipoles -- i.e., "antipodal" support vectors
-            with opposite weights alpha (-1, +1) and the same gamma (scale) parameter. During training the position of
-            support vectors are being optimized, while weights alpha and scale parameters gamma are
-    """
     def __init__(self, num_support_sets, num_support_dipoles, support_vectors_dim,
                  learn_alphas=False, learn_gammas=False, gamma=None):
-        """ SupportSets constructor.
+        """SupportSets class constructor.
 
         Args:
             num_support_sets (int)    : number of support sets (each one defining a warping function)
@@ -32,13 +25,6 @@ class SupportSets(nn.Module):
         self.gamma = gamma
         self.loggamma = torch.log(torch.scalar_tensor(self.gamma))
 
-        # TODO: add comment
-        self.r = 3.0
-        self.r_min = 1.0
-        self.r_max = 4.0
-        self.r_mean = 0.5 * (self.r_min + self.r_max)
-        self.radii = torch.arange(self.r_min, self.r_max, (self.r_max - self.r_min)/self.num_support_sets)
-
         ################################################################################################################
         ##                                                                                                            ##
         ##                                        [ SUPPORT_SETS: (K, N, d) ]                                         ##
@@ -49,7 +35,10 @@ class SupportSets(nn.Module):
         self.SUPPORT_SETS = nn.Parameter(data=torch.ones(self.num_support_sets,
                                                          2 * self.num_support_dipoles * self.support_vectors_dim),
                                          requires_grad=True)
-
+        # Initialize support sets
+        self.r_min = 1.0
+        self.r_max = 4.0
+        self.radii = torch.arange(self.r_min, self.r_max, (self.r_max - self.r_min) / self.num_support_sets)
         SUPPORT_SETS = torch.zeros(self.num_support_sets, 2 * self.num_support_dipoles, self.support_vectors_dim)
         for k in range(self.num_support_sets):
             SV_set = []
@@ -70,10 +59,10 @@ class SupportSets(nn.Module):
         ##                                            [ ALPHAS: (K, N) ]                                              ##
         ##                                                                                                            ##
         ################################################################################################################
-        # REVIEW: Define alphas as parameters (learnable or non-learnable)
+        # Define alphas as parameters (learnable or non-learnable)
         self.ALPHAS = nn.Parameter(data=torch.zeros(self.num_support_sets, 2 * self.num_support_dipoles),
                                    requires_grad=self.learn_alphas)
-
+        # Initialize alphas
         for k in range(self.num_support_sets):
             a = []
             for _ in range(self.num_support_dipoles):
@@ -85,21 +74,11 @@ class SupportSets(nn.Module):
         ##                                            [ GAMMAS: (K, N) ]                                              ##
         ##                                                                                                            ##
         ################################################################################################################
-        # Define RBF gammas
+        # Define RBF gammas and initialize
         self.LOGGAMMA = nn.Parameter(data=self.loggamma * torch.ones(self.num_support_sets, 1),
                                      requires_grad=self.learn_gammas)
 
     def forward(self, support_sets_mask, z):
-        """TODO: +++
-
-        Args:
-            support_sets_mask (torch.Tensor): TODO: +++ -- size: +++
-            z (torch.Tensor): input latent codes -- size: TODO: +++
-
-        Returns:
-            Normalized grad of f evaluated at given z -- size: (bs, dim).
-
-        """
         # Get RBF support sets batch
         support_sets_batch = torch.matmul(support_sets_mask, self.SUPPORT_SETS)
         support_sets_batch = support_sets_batch.reshape(-1, 2 * self.num_support_dipoles, self.support_vectors_dim)
@@ -115,9 +94,6 @@ class SupportSets(nn.Module):
 
         # Calculate grad of f at z
         D = z.unsqueeze(dim=1).repeat(1, 2 * self.num_support_dipoles, 1) - support_sets_batch
-
-        # REVIEW: Fix `grad_f` formula
-        # grad_f = -2 * (alphas_batch * torch.exp(-gammas_batch * (torch.norm(D, dim=2) ** 2).unsqueeze(dim=2)) * D).sum(dim=1)
         grad_f = -2 * (alphas_batch * gammas_batch *
                        torch.exp(-gammas_batch * (torch.norm(D, dim=2) ** 2).unsqueeze(dim=2)) * D).sum(dim=1)
 
