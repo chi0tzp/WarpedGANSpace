@@ -154,20 +154,26 @@ class StyleGAN2Wrapper(nn.Module):
         """
         return self.G.get_latent(z)
 
-    def forward(self, z, shift=None):
+    def forward(self, z, shift=None, latent_is_w=False):
         """StyleGAN2 generator forward function.
 
         Args:
             z (torch.Tensor)     : Batch of latent codes in Z-space
             shift (torch.Tensor) : Batch of shift vectors in Z- or W-space (based on self.shift_in_w_space)
+            latent_is_w (bool)   : Input latent code (denoted by z here) is in W-space
 
         Returns:
             I (torch.Tensor)     : Output images of size [batch_size, 3, resolution, resolution]
         """
-        # The given latent codes lie on Z-space, while the given shifts lie on the W-space
+        # The given latent codes lie on Z- or W-space, while the given shifts lie on the W-space
         if self.shift_in_w_space:
-            w = self.G.get_latent(z)
-            return self.G([w if shift is None else w + shift], input_is_latent=True)[0]
+            if latent_is_w:
+                # Input latent code is in W-space
+                return self.G([z if shift is None else z + shift], input_is_latent=True)[0]
+            else:
+                # Input latent code is in Z-space -- get w code first
+                w = self.G.get_latent(z)
+                return self.G([w if shift is None else w + shift], input_is_latent=True)[0]
         # The given latent codes and shift vectors lie on the Z-space
         else:
             return self.G([z if shift is None else z + shift], input_is_latent=False)[0]
