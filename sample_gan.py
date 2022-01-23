@@ -53,6 +53,7 @@ def main():
     parser.add_argument('-v', '--verbose', action='store_true', help="set verbose mode on")
     parser.add_argument('-g', '--gan-type', type=str, required=True, choices=GAN_WEIGHTS.keys(),
                         help='GAN generator model type')
+    parser.add_argument('--shift-in-w-space', action='store_true', help="search latent paths in StyleGAN2's W-space")
     parser.add_argument('--z-truncation', type=float, help="set latent code sampling truncation parameter")
     parser.add_argument('--biggan-target-classes', nargs='+', type=int, help="list of classes for conditional BigGAN")
     parser.add_argument('--stylegan2-resolution', type=int, default=1024, choices=(256, 1024),
@@ -121,7 +122,8 @@ def main():
     # -- StyleGAN2
     elif args.gan_type == 'StyleGAN2':
         G = build_stylegan2(resolution=args.stylegan2_resolution,
-                            pretrained_gan_weights=GAN_WEIGHTS[args.gan_type]['weights'][args.stylegan2_resolution])
+                            pretrained_gan_weights=GAN_WEIGHTS[args.gan_type]['weights'][args.stylegan2_resolution],
+                            shift_in_w_space=args.shift_in_w_space)
     # -- Spectrally Normalised GAN (SNGAN)
     else:
         G = build_sngan(pretrained_gan_weights=GAN_WEIGHTS[args.gan_type]['weights'][GAN_RESOLUTIONS[args.gan_type]],
