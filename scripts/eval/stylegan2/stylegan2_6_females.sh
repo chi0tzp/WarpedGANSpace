@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # === Configuration ===
-pool="StyleGAN2_8_females"
+pool="StyleGAN2_6_females"
 eps=0.15
 shift_steps=20
 shift_leap=1
