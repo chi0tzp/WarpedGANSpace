@@ -8,7 +8,7 @@ shift_leap=1
 batch_size=8
 # =====================
 
-declare -a EXPERIMENTS=("experiments/complete/BigGAN-239-ResNet-K120-D256-LearnGammas-eps0.15_0.25")
+declare -a EXPERIMENTS=("experiments/complete/BigGAN-239-ResNet-K120-D256-LearnGammas-eps0.1_0.2")
 
 for exp in "${EXPERIMENTS[@]}"
 do
