@@ -5,7 +5,7 @@ pool="StyleGAN2_dev"
 eps=0.15
 shift_steps=20
 shift_leap=1
-batch_size=8
+batch_size=2
 gif_size=256
 num_imgs=5
 metric="corr+corr_l1"
@@ -36,24 +36,24 @@ do
   # ------------------------------------------------------------------------------------------------------------------ #
 
   # --- Traverse attribute space ------------------------------------------------------------------------------------- #
-#  python traverse_attribute_space.py -v \
-#                                     --exp="${exp}" \
-#                                     --pool=${pool} \
-#                                     --eps=${eps} \
-#                                     --shift-steps=${shift_steps}
+  python traverse_attribute_space.py -v \
+                                     --exp="${exp}" \
+                                     --pool=${pool} \
+                                     --eps=${eps} \
+                                     --shift-steps=${shift_steps}
   # ------------------------------------------------------------------------------------------------------------------ #
 
   # --- Rank interpretable paths for all given attribute groups ------------------------------------------------------ #
-#  for attr_group in "${ATTRIBUTE_GROUPS[@]}"
-#  do
-#    python rank_interpretable_paths.py -v --exp="${exp}" \
-#                                          --pool=${pool} \
-#                                          --eps=${eps} \
-#                                          --shift-steps=${shift_steps} \
-#                                          --num-imgs=${num_imgs} \
-#                                          --gif-size=${gif_size} \
-#                                          --attr-group="${attr_group}" \
-#                                          --metric=${metric}
-#  done
+  for attr_group in "${ATTRIBUTE_GROUPS[@]}"
+  do
+    python rank_interpretable_paths.py -v --exp="${exp}" \
+                                          --pool=${pool} \
+                                          --eps=${eps} \
+                                          --shift-steps=${shift_steps} \
+                                          --num-imgs=${num_imgs} \
+                                          --gif-size=${gif_size} \
+                                          --attr-group="${attr_group}" \
+                                          --metric=${metric}
+  done
   # ------------------------------------------------------------------------------------------------------------------ #
 done
