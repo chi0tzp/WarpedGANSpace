@@ -1,4 +1,3 @@
-import sys
 import argparse
 import os
 import os.path as osp
@@ -297,12 +296,6 @@ def main():
     if args.batch_size is None:
         args.batch_size = 2 * args.shift_steps + 1
 
-    # Set size of saved generated images
-    if args.img_size is None:
-        # TODO
-        pass
-        # args.img_size = ???
-
     ## ============================================================================================================== ##
     ##                                                                                                                ##
     ##                                              [Latent Codes Pool]                                               ##
@@ -374,7 +367,7 @@ def main():
             transformed_images = []
 
             # Current path's latent codes and shifts lists
-            current_path_latent_codes = [z_]
+            current_path_latent_codes = [G.get_w(z_) if args_json.__dict__["shift_in_w_space"] else z_]
             current_path_latent_shifts = [torch.zeros_like(z_).cuda() if use_cuda else torch.zeros_like(z_)]
 
             ## ====================================================================================================== ##
@@ -383,7 +376,12 @@ def main():
             ##                                                                                                        ##
             ## ====================================================================================================== ##
             # == Positive direction ==
-            z = z_.clone()
+            if args_json.__dict__["shift_in_w_space"]:
+                z = z_.clone()
+                w = G.get_w(z)
+            else:
+                z = z_.clone()
+
             cnt = 0
             for _ in range(args.shift_steps):
                 cnt += 1
@@ -394,19 +392,26 @@ def main():
                     support_sets_mask.cuda()
                 # Get latent space shift vector
                 with torch.no_grad():
-                    shift = args.eps * S(support_sets_mask, G.get_w(z) if args_json.__dict__["shift_in_w_space"] else z)
+                    shift = args.eps * S(support_sets_mask, w if args_json.__dict__["shift_in_w_space"] else z)
 
-                # Update z
-                z = z + shift
+                # Update z/w
+                if args_json.__dict__["shift_in_w_space"]:
+                    w = w + shift
+                else:
+                    z = z + shift
 
                 # Store latent codes and shifts
                 if cnt == args.shift_leap:
                     current_path_latent_shifts.append(shift)
-                    current_path_latent_codes.append(z)
+                    current_path_latent_codes.append(w if args_json.__dict__["shift_in_w_space"] else z)
                     cnt = 0
 
             # == Negative direction ==
-            z = z_.clone()
+            if args_json.__dict__["shift_in_w_space"]:
+                z = z_.clone()
+                w = G.get_w(z)
+            else:
+                z = z_.clone()
             cnt = 0
             for _ in range(args.shift_steps):
                 cnt += 1
@@ -417,15 +422,23 @@ def main():
                     support_sets_mask.cuda()
                 # Get latent space shift vector
                 with torch.no_grad():
-                    shift = -args.eps * S(support_sets_mask, G.get_w(z) if args_json.__dict__["shift_in_w_space"] else z)
+                    shift = -args.eps * S(
+                        support_sets_mask, G.get_w(z) if args_json.__dict__["shift_in_w_space"] else z
+                    )
 
-                # Update z
-                z = z + shift
+                # Update z/w
+                if args_json.__dict__["shift_in_w_space"]:
+                    w = w + shift
+                else:
+                    z = z + shift
+
                 # Store latent codes and shifts
                 if cnt == args.shift_leap:
                     current_path_latent_shifts = [shift] + current_path_latent_shifts
-                    current_path_latent_codes = [z] + current_path_latent_codes
+                    current_path_latent_codes = [w if args_json.__dict__["shift_in_w_space"] else z] \
+                        + current_path_latent_codes
                     cnt = 0
+            # ========================
 
             # Generate transformed images
             # Split latent codes and shifts in batches
@@ -442,8 +455,13 @@ def main():
             transformed_img = []
             for t in range(num_batches):
                 with torch.no_grad():
-                    transformed_img.append(G(z=current_path_latent_codes_batches[t],
-                                             shift=current_path_latent_shifts_batches[t]))
+                    if args_json.__dict__["shift_in_w_space"]:
+                        transformed_img.append(G(z=current_path_latent_codes_batches[t],
+                                                 shift=current_path_latent_shifts_batches[t],
+                                                 latent_is_w=True))
+                    else:
+                        transformed_img.append(G(z=current_path_latent_codes_batches[t],
+                                                 shift=current_path_latent_shifts_batches[t]))
             transformed_img = torch.cat(transformed_img)
 
             # Convert tensors (transformed images) into PIL images
