@@ -422,9 +422,7 @@ def main():
                     support_sets_mask.cuda()
                 # Get latent space shift vector
                 with torch.no_grad():
-                    shift = -args.eps * S(
-                        support_sets_mask, G.get_w(z) if args_json.__dict__["shift_in_w_space"] else z
-                    )
+                    shift = -args.eps * S(support_sets_mask, w if args_json.__dict__["shift_in_w_space"] else z)
 
                 # Update z/w
                 if args_json.__dict__["shift_in_w_space"]:

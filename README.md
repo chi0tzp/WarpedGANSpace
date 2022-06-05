@@ -160,12 +160,6 @@ This can be done by using  `rank_interpretable_paths.py` for a given group of at
 
 
 
-## Demo
-
-[*To Appear soon*]
-
-
-
 ## Citation
 
 [1] Christos Tzelepis, Georgios Tzimiropoulos, and Ioannis Patras. WarpedGANSpace: Finding non-linear rbf paths in gan latent space. IEEE International Conference on Computer Vision (ICCV), 2021.
