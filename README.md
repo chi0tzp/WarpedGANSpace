@@ -24,8 +24,9 @@ Each warping function is defined by a set of *N* support vectors (which form a "
 
 
 <p align="center">
-<img src="./figs/interpretable_path.svg" alt="Non-linear interpretable path"/>
+<img src="./figs/interpretable_path.png" alt="Non-linear interpretable path" width="500"/>
 </p>
+
 
 
 Each warping function gives rise to a family of non-linear paths. We learn a set of such warping functions (implemented by the *Warping Network*), i.e., a set of such non-linear path families, so as the image transformations that they produce are distinguishable to each other by a discriminator network (the *Reconstructor*). An overview of the method is given below.
@@ -55,7 +56,7 @@ $ source warped-gan-space/bin/activate
 Download the prerequisite pretrained models (i.e., GAN generators, face detector, pose estimator, and other attribute detectors), as well as pre-trained WarpedGANSpace models (optionally, by passing `-m`), as follows:
 
 ```bash
-$ python download.py	
+(warped-gan-space) $ python download.py	
 ```
 
 This will create a directory `models/pretrained` with the following sub-directories (~2.0 GiB):
@@ -89,7 +90,7 @@ For training a *WarpedGANSpace* model you need to use `train.py` (check its basi
 For example, in order to train a *WarpedGANSpace* model on the `ProgGAN` pre-trained (on CelebA) generator for discovering `K=128` interpretable paths (latent warping functions) with `N=32`  support dipoles each (i.e., 32 pairs of bipolar RBFs) run the following command:
 
 ```bash
-python train.py -v --gan-type=ProgGAN --reconstructor-type=ResNet --learn-gammas --num-support-sets=128 --num-support-dipoles=32 --min-shift-magnitude=0.15 --max-shift-magnitude=0.25 --batch-size=8 --max-iter=200000
+(warped-gan-space) $ python train.py -v --gan-type=ProgGAN --reconstructor-type=ResNet --learn-gammas --num-support-sets=128 --num-support-dipoles=32 --min-shift-magnitude=0.15 --max-shift-magnitude=0.25 --batch-size=8 --max-iter=200000
 ```
 
 In the example above, batch size is set to `8` and the training will be conducted for `200000` iterations. Minimum and maximum shift magnitudes are set to `0.15` and `0.25`, respectively (please see Sect. 3.2 in the paper for more details).  A set of auxiliary training scripts (for all available GAN generators) can be found under `scripts/train/`.

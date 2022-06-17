@@ -6,7 +6,10 @@
    version="1.1"
    id="svg2445"
    sodipodi:docname="interpretable_path.svg"
-   inkscape:version="1.1 (c4e8f9ed74, 2021-05-24)"
+   inkscape:version="1.2 (dc2aedaf03, 2022-05-15)"
+   inkscape:export-filename="interpretable_path.png"
+   inkscape:export-xdpi="599.954"
+   inkscape:export-ydpi="599.954"
    xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
    xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
    xmlns:xlink="http://www.w3.org/1999/xlink"
@@ -40,8 +43,8 @@
      id="namedview2447"
      showgrid="false"
      inkscape:zoom="2.4681394"
-     inkscape:cx="153.1518"
-     inkscape:cy="137.35043"
+     inkscape:cx="141.40206"
+     inkscape:cy="125.19552"
      inkscape:window-x="0"
      inkscape:window-y="0"
      inkscape:window-maximized="1"
@@ -66,7 +69,9 @@
      inkscape:snap-midpoints="true"
      inkscape:snap-object-midpoints="true"
      inkscape:snap-center="true"
-     inkscape:snap-text-baseline="true" />
+     inkscape:snap-text-baseline="true"
+     inkscape:showpageshadow="0"
+     inkscape:deskcolor="#d1d1d1" />
   <image
      width="351.76956"
      height="129.91692"
