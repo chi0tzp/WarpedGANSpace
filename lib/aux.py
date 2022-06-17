@@ -4,9 +4,7 @@ import os.path as osp
 import json
 import argparse
 import numpy as np
-import torch
 import math
-from scipy.stats import truncnorm
 from PIL import Image, ImageDraw
 
 
@@ -36,30 +34,13 @@ class TrainingStatTracker(object):
             self.stat_tracker[key] = []
 
 
-def sample_z(batch_size, dim_z, truncation=None):
-    """Sample a random latent code from multi-variate standard Gaussian distribution with/without truncation.
-
-    Args:
-        batch_size (int)   : batch size (number of latent codes)
-        dim_z (int)        : latent space dimensionality
-        truncation (float) : truncation parameter
-
-    Returns:
-        z (torch.Tensor)   : batch of latent codes
-    """
-    if truncation is None or truncation == 1.0:
-        return torch.randn(batch_size, dim_z)
-    else:
-        return torch.from_numpy(truncnorm.rvs(-truncation, truncation, size=(batch_size, dim_z))).to(torch.float)
-
-
 def create_exp_dir(args):
     """Create output directory for current experiment under experiments/wip/ and save given the arguments (json) and
     the given command (bash script).
 
     Experiment's directory name format:
 
-        <gan_type>(-<stylegan2_resolution>)(-{Z,W})-<reconstructor_type>-K<num_support_sets>-
+        WarpedGANSpace_<gan_type>(-{Z,W,W+})-<reconstructor_type>-K<num_support_sets>-
             D<num_support_dipoles>(-LearnAlphas)(-LearnGammas)-eps<min_shift_magnitude>_<max_shift_magnitude>
     E.g.:
 
@@ -69,19 +50,11 @@ def create_exp_dir(args):
         args (argparse.Namespace): the namespace object returned by `parse_args()` for the current run
 
     """
-    exp_dir = "{}".format(args.gan_type)
-    if args.gan_type == 'StyleGAN2':
-        exp_dir += '-{}'.format(args.stylegan2_resolution)
-        if args.shift_in_w_space:
-            exp_dir += '-W'
-        else:
-            exp_dir += '-Z'
-    if args.gan_type == 'BigGAN':
-        biggan_classes = '-'
-        for c in args.biggan_target_classes:
-            biggan_classes += '{}'.format(c)
-        exp_dir += '{}'.format(biggan_classes)
-    exp_dir += "-{}".format(args.reconstructor_type)
+    exp_dir = "WarpedGANSpace_{}".format(args.gan)
+    if 'stylegan' in args.gan:
+        exp_dir += '-{}'.format(args.stylegan_space)
+    else:
+        exp_dir += '-Z'
     exp_dir += "-K{}-D{}".format(args.num_support_sets, args.num_support_dipoles)
     if args.learn_alphas:
         exp_dir += '-LearnAlphas'
@@ -243,8 +216,8 @@ def create_summarizing_gif(imgs_root, gif_filename, num_imgs=None, gif_size=None
         if progress_bar_h > 0:
             gif_frame_pil_drawing = ImageDraw.Draw(gif_frame_pil)
             progress = (i / len(path_images)) * gif_w
-            gif_frame_pil_drawing.rectangle(xy=[num_imgs * gif_w + gap, gif_h - progress_bar_h,
-                                                num_imgs * gif_w + gap + progress, gif_h],
+            gif_frame_pil_drawing.rectangle(xy=(num_imgs * gif_w + gap, gif_h - progress_bar_h,
+                                                num_imgs * gif_w + gap + progress, gif_h),
                                             fill=progress_bar_color)
 
         # Append to GIF frames list

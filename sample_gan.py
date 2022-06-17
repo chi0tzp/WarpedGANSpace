@@ -3,63 +3,49 @@ import os.path as osp
 import argparse
 import torch
 import json
-from torch import nn
 from hashlib import sha1
 from torchvision.transforms import ToPILImage
-from lib import *
-from models.gan_load import build_biggan, build_proggan, build_stylegan2, build_sngan
+from lib import GENFORCE_MODELS, update_progress, update_stdout
+from models.load_generator import load_generator
 
 
-def tensor2image(tensor, adaptive=False):
+def tensor2image(tensor, img_size=None, adaptive=False):
+    # Squeeze tensor image
     tensor = tensor.squeeze(dim=0)
     if adaptive:
         tensor = (tensor - tensor.min()) / (tensor.max() - tensor.min())
-        return ToPILImage()((255 * tensor.cpu().detach()).to(torch.uint8))
+        if img_size:
+            return ToPILImage()((255 * tensor.cpu().detach()).to(torch.uint8)).resize((img_size, img_size))
+        else:
+            return ToPILImage()((255 * tensor.cpu().detach()).to(torch.uint8))
     else:
         tensor = (tensor + 1) / 2
         tensor.clamp(0, 1)
-        return ToPILImage()((255 * tensor.cpu().detach()).to(torch.uint8))
-
-
-class DataParallelPassthrough(nn.DataParallel):
-    def __getattr__(self, name):
-        try:
-            return super(DataParallelPassthrough, self).__getattr__(name)
-        except AttributeError:
-            return getattr(self.module, name)
+        if img_size:
+            return ToPILImage()((255 * tensor.cpu().detach()).to(torch.uint8)).resize((img_size, img_size))
+        else:
+            return ToPILImage()((255 * tensor.cpu().detach()).to(torch.uint8))
 
 
 def main():
-    """A script for sampling from a pre-trained GAN latent space and generating images. The generated images, along with
-    the corresponding latent codes (in torch.Tensor format), will be stored under
-        `experiments/latent_codes/<gan_type>/<pool>/`.
-    If no pool name is given, then `<gan_type>_<num_samples>/` will be used instead.
+    """A script for sampling from a pre-trained GAN's latent space and generating images. The generated images, along
+    with the corresponding latent codes, will be stored under `experiments/latent_codes/<gan>/`.
 
     Options:
-        -v, --verbose           : set verbose mode on
-        -g, --gan-type          : set GAN type (SNGAN_MNIST, SNGAN_AnimeFaces, BigGAN, ProgGAN, or StyleGAN2)
-        --z-truncation          : set latent code sampling truncation parameter. If set, latent codes will be sampled
-                                  from a standard Gaussian distribution truncated to the range [-args.z_truncation,
-                                  +args.z_truncation]
-        --biggan-target-classes : set list of classes to use for conditional BigGAN (see BIGGAN_CLASSES in
-                                  lib/config.py). E.g., --biggan-target-classes 14 239.
-        --stylegan2-resolution  : set StyleGAN2 generator output images resolution (256 or 1024)
-        --num-samples           : set the number of latent codes to sample for generating images
-        --pool                  : set name of the latent codes/images pool.
-        --cuda                  : use CUDA (default)
-        --no-cuda               : do not use CUDA
+        -v, --verbose    : set verbose mode on
+        --gan            : set GAN generator (see GENFORCE_MODELS in lib/config.py)
+        --stylegan-space : set StyleGAN latent space (Z, W, W+) -- sampling is always done in Z space but in case this
+                           is set in W/W+-space, all latent codes will be stored
+        --truncation     : set W-space truncation parameter. If set, W-space codes will be truncated
+        --num-samples    : set the number of latent codes to sample for generating images
+        --cuda           : use CUDA (default)
+        --no-cuda        : do not use CUDA
     """
     parser = argparse.ArgumentParser(description="Sample a pre-trained GAN latent space and generate images")
-    parser.add_argument('-v', '--verbose', action='store_true', help="set verbose mode on")
-    parser.add_argument('-g', '--gan-type', type=str, required=True, choices=GAN_WEIGHTS.keys(),
-                        help='GAN generator model type')
-    parser.add_argument('--shift-in-w-space', action='store_true', help="search latent paths in StyleGAN2's W-space")
-    parser.add_argument('--z-truncation', type=float, help="set latent code sampling truncation parameter")
-    parser.add_argument('--biggan-target-classes', nargs='+', type=int, help="list of classes for conditional BigGAN")
-    parser.add_argument('--stylegan2-resolution', type=int, default=1024, choices=(256, 1024),
-                        help="StyleGAN2 image resolution")
-    parser.add_argument('--num-samples', type=int, default=4, help="number of latent codes to sample")
-    parser.add_argument('--pool', type=str, help="name of latent codes/images pool")
+    parser.add_argument('-v', '--verbose', action='store_true', help="verbose mode on")
+    parser.add_argument('--gan', type=str, required=True, choices=GENFORCE_MODELS.keys(), help='GAN generator')
+    parser.add_argument('--truncation', type=float, default=1.0, help="W-space truncation parameter")
+    parser.add_argument('--num-samples', type=int, default=4, help="set number of latent codes to sample")
     parser.add_argument('--cuda', dest='cuda', action='store_true', help="use CUDA during training")
     parser.add_argument('--no-cuda', dest='cuda', action='store_false', help="do NOT use CUDA during training")
     parser.set_defaults(cuda=True)
@@ -69,81 +55,45 @@ def main():
     args = parser.parse_args()
 
     # Create output dir for generated images
-    out_dir = osp.join('experiments', 'latent_codes', args.gan_type)
-    biggan_classes = None
-    if args.gan_type == 'BigGAN':
-        # Get BigGAN classes
-        if args.biggan_target_classes is None:
-            raise parser.error("In case of BigGAN, a list of classes needs to be determined.")
-        biggan_classes = ''
-        for c in args.biggan_target_classes:
-            biggan_classes += '-{}'.format(c)
-        out_dir += biggan_classes
-    if args.pool:
-        out_dir = osp.join(out_dir, args.pool)
-    else:
-        out_dir = osp.join(out_dir, '{}_{}'.format(args.gan_type + biggan_classes if args.gan_type == 'BigGAN'
-                                                   else args.gan_type, args.num_samples))
+    out_dir = osp.join('experiments', 'latent_codes', args.gan)
+    out_dir = osp.join(out_dir, '{}-{}'.format(args.gan, args.num_samples))
     os.makedirs(out_dir, exist_ok=True)
 
     # Save argument in json file
     with open(osp.join(out_dir, 'args.json'), 'w') as args_json_file:
         json.dump(args.__dict__, args_json_file)
 
-    # Set default tensor type
+    # CUDA
+    use_cuda = False
     if torch.cuda.is_available():
         if args.cuda:
+            use_cuda = True
             torch.set_default_tensor_type('torch.cuda.FloatTensor')
-        if not args.cuda:
+        else:
             print("*** WARNING ***: It looks like you have a CUDA device, but aren't using CUDA.\n"
                   "                 Run with --cuda for optimal training speed.")
             torch.set_default_tensor_type('torch.FloatTensor')
     else:
         torch.set_default_tensor_type('torch.FloatTensor')
-    use_cuda = args.cuda and torch.cuda.is_available()
 
     # Build GAN generator model and load with pre-trained weights
     if args.verbose:
         print("#. Build GAN generator model G and load with pre-trained weights...")
-        print("  \\__GAN type: {}".format(args.gan_type))
-        if args.gan_type == 'BigGAN':
-            print("      \\__Target classes: {}".format(args.biggan_target_classes))
-        print("  \\__Pre-trained weights: {}".format(
-            GAN_WEIGHTS[args.gan_type]['weights'][args.stylegan2_resolution] if args.gan_type == 'StyleGAN2' else
-            GAN_WEIGHTS[args.gan_type]['weights'][GAN_RESOLUTIONS[args.gan_type]]))
+        print("  \\__GAN generator : {} (res: {})".format(args.gan, GENFORCE_MODELS[args.gan][1]))
+        print("  \\__Pre-trained weights: {}".format(GENFORCE_MODELS[args.gan][0]))
 
-    # -- BigGAN
-    if args.gan_type == 'BigGAN':
-        G = build_biggan(pretrained_gan_weights=GAN_WEIGHTS[args.gan_type]['weights'][GAN_RESOLUTIONS[args.gan_type]],
-                         target_classes=args.biggan_target_classes)
-    # -- ProgGAN
-    elif args.gan_type == 'ProgGAN':
-        G = build_proggan(pretrained_gan_weights=GAN_WEIGHTS[args.gan_type]['weights'][GAN_RESOLUTIONS[args.gan_type]])
-    # -- StyleGAN2
-    elif args.gan_type == 'StyleGAN2':
-        G = build_stylegan2(resolution=args.stylegan2_resolution,
-                            pretrained_gan_weights=GAN_WEIGHTS[args.gan_type]['weights'][args.stylegan2_resolution],
-                            shift_in_w_space=args.shift_in_w_space)
-    # -- Spectrally Normalised GAN (SNGAN)
-    else:
-        G = build_sngan(pretrained_gan_weights=GAN_WEIGHTS[args.gan_type]['weights'][GAN_RESOLUTIONS[args.gan_type]],
-                        gan_type=args.gan_type)
+    G = load_generator(model_name=args.gan,
+                       latent_is_w='stylegan' in args.gan,
+                       verbose=args.verbose).eval()
 
     # Upload GAN generator model to GPU
     if use_cuda:
         G = G.cuda()
 
-    # Set generator to evaluation mode
-    G.eval()
-
     # Latent codes sampling
     if args.verbose:
         print("#. Sample {} {}-dimensional latent codes...".format(args.num_samples, G.dim_z))
-        if args.z_truncation:
-            print("  \\__Truncate standard Gaussian to range [{}, +{}]".format(-args.z_truncation, args.z_truncation))
-
-    # zs = torch.randn(args.num_samples, G.dim_z)
-    zs = sample_z(batch_size=args.num_samples, dim_z=G.dim_z, truncation=args.z_truncation)
+    zs = torch.randn(args.num_samples, G.dim_z)
 
     if use_cuda:
         zs = zs.cuda()
@@ -167,16 +117,25 @@ def main():
         latent_code_dir = osp.join(out_dir, '{}'.format(latent_code_hash))
         os.makedirs(latent_code_dir, exist_ok=True)
 
-        # Save latent code tensor under `latent_code_dir`
-        torch.save(z.cpu(), osp.join(latent_code_dir, 'latent_code.pt'))
+        if 'stylegan' in args.gan:
+            # Get the w+ and w codes for the given z code, save them, and the generated image based on the w code
+            # Note that w+ has torch.Size([1, 512]) and w torch.Size([18, 512]) -- the latter is just a repetition of
+            # the w code for all 18 layers
+            w_plus = G.get_w(z, truncation=args.truncation)[0, :, :]
+            w = w_plus[0, :].unsqueeze(0)
+            torch.save(z.cpu(), osp.join(latent_code_dir, 'latent_code_z.pt'))
+            torch.save(w.cpu(), osp.join(latent_code_dir, 'latent_code_w.pt'))
+            torch.save(w_plus.cpu(), osp.join(latent_code_dir, 'latent_code_w+.pt'))
 
-        # Generate image for the given latent code z
-        with torch.no_grad():
-            img = G(z).cpu()
-
-        # Convert image's tensor into an RGB image and save it
-        img_pil = tensor2image(img, adaptive=True)
-        img_pil.save(osp.join(latent_code_dir, 'image.jpg'), "JPEG", quality=95, optimize=True, progressive=True)
+            img_w = G(w).cpu()
+            tensor2image(img_w, adaptive=True).save(osp.join(latent_code_dir, 'image_w.jpg'),
+                                                    "JPEG", quality=95, optimize=True, progressive=True)
+        else:
+            # Save latent code (Z-space), generate image for this code, and save the generated image
+            torch.save(z.cpu(), osp.join(latent_code_dir, 'latent_code_z.pt'))
+            img_z = G(z).cpu()
+            tensor2image(img_z, adaptive=True).save(osp.join(latent_code_dir, 'image_z.jpg'),
+                                                    "JPEG", quality=95, optimize=True, progressive=True)
 
     if args.verbose:
         update_stdout(1)

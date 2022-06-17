@@ -1,6 +1,6 @@
 # WarpedGANSpace: Finding non-linear RBF paths in GAN latent space
 
-Authors official PyTorch implementation of the **[WarpedGANSpace: Finding non-linear RBF paths in GAN latent space (ICCV 2021)](https://arxiv.org/abs/2109.13357)**. If you use this code for your research, please [**cite**](#citation) our paper.
+Authors official PyTorch implementation of the **[WarpedGANSpace: Finding non-linear RBF paths in GAN latent space (ICCV 2021)](https://openaccess.thecvf.com/content/ICCV2021/papers/Tzelepis_WarpedGANSpace_Finding_Non-Linear_RBF_Paths_in_GAN_Latent_Space_ICCV_2021_paper.pdf)**. If you use this code for your research, please [**cite**](#citation) our paper.
 
 <p align="center">
 <img src="demo/banner/celeba_age_1_6_689f0ab17f84b9cd36c0a5bdfb0469aadce4c4ba.gif" style="width: 75vw" title="Age"/>
@@ -51,34 +51,51 @@ $ source warped-gan-space/bin/activate
 
 
 
-## Prerequisite pretrained models
+## Prerequisite pre-trained models
 
-Download the prerequisite pretrained models (i.e., GAN generators, face detector, pose estimator, and other attribute detectors), as well as pre-trained WarpedGANSpace models (optionally, by passing `-m`), as follows:
+Download the prerequisite pre-trained models (i.e., GAN generators, face detector, pose estimator, and other attribute detectors), as well as pre-trained WarpedGANSpace models (optionally, by passing `-m`), as follows:
 
 ```bash
 (warped-gan-space) $ python download.py	
 ```
 
-This will create a directory `models/pretrained` with the following sub-directories (~2.0 GiB):
+This will create a directory `models/pretrained` with the following sub-directories (~3.3 GiB):
 
 ```
 ./models/pretrained/
-├── au_detector/
-├── generators/
-├── arcface/
-├── fairface/
-├── hopenet/
-└── sfd/
+├── arcface
+│   └── model_ir_se50.pth
+├── au_detector
+│   └── disfa_adaptation_f0.pth
+├── celeba_attributes
+│   └── eval_predictor.pth.tar
+├── fairface
+│   ├── fairface_alldata_4race_20191111.pt
+│   └── res34_fair_align_multi_7_20190809.pt
+├── genforce
+│   ├── pggan_car256.pth
+│   ├── pggan_celebahq1024.pth
+│   ├── pggan_church256.pth
+│   ├── stylegan2_afhqcat512.pth
+│   ├── stylegan2_afhqdog512.pth
+│   ├── stylegan2_car512.pth
+│   ├── stylegan2_church256.pth
+│   └── stylegan2_ffhq1024.pth
+├── hopenet
+│   ├── hopenet_alpha1.pkl
+│   ├── hopenet_alpha2.pkl
+│   └── hopenet_robust_alpha1.pkl
+└── sfd
+    └── s3fd-619a316812.pth
 ```
 
-as well as, a directory `experiments/complete/` (if not already created by the user upon an experiment's completion) for downloading the WarpedGANSpace pretrained models (if selected) with the following sub-directories (~??? GiB):
+as well as, a directory `experiments/complete/` (if not already created by the user upon an experiment's completion) for downloading the WarpedGANSpace pre-trained models (if selected) with the following sub-directories (~??? GiB):
 
 ```
 .experiments/complete/
-├── SNGAN_AnimeFaces-LeNet-K64-D128-LearnGammas-eps0.25_0.35/
-├── SNGAN_MNIST-LeNet-K64-D128-LearnGammas-eps0.15_0.25/
-├── BigGAN-239-ResNet-K120-D256-LearnGammas-eps0.15_0.25/
-└── ProgGAN-ResNet-K200-D512-LearnGammas-eps0.1_0.2/
+#######
+ TODO
+#######
 ```
 
 
@@ -87,7 +104,7 @@ as well as, a directory `experiments/complete/` (if not already created by the u
 
 For training a *WarpedGANSpace* model you need to use `train.py` (check its basic usage by running `python train.py -h`).
 
-For example, in order to train a *WarpedGANSpace* model on the `ProgGAN` pre-trained (on CelebA) generator for discovering `K=128` interpretable paths (latent warping functions) with `N=32`  support dipoles each (i.e., 32 pairs of bipolar RBFs) run the following command:
+For example, in order to train a *WarpedGANSpace* model on the `ProgGAN` pre-trained (on CelebA-HQ) generator for discovering `K=128` interpretable paths (latent warping functions) with `N=32`  support dipoles each (i.e., 32 pairs of bipolar RBFs) run the following command:
 
 ```bash
 (warped-gan-space) $ python train.py -v --gan-type=ProgGAN --reconstructor-type=ResNet --learn-gammas --num-support-sets=128 --num-support-dipoles=32 --min-shift-magnitude=0.15 --max-shift-magnitude=0.25 --batch-size=8 --max-iter=200000
@@ -163,7 +180,7 @@ This can be done by using  `rank_interpretable_paths.py` for a given group of at
 
 ## Citation
 
-[1] Christos Tzelepis, Georgios Tzimiropoulos, and Ioannis Patras. WarpedGANSpace: Finding non-linear rbf paths in gan latent space. IEEE International Conference on Computer Vision (ICCV), 2021.
+[1] Christos Tzelepis, Georgios Tzimiropoulos, and Ioannis Patras. WarpedGANSpace: Finding non-linear RBF paths in GAN latent space. IEEE International Conference on Computer Vision (ICCV), 2021.
 
 Bibtex entry:
 

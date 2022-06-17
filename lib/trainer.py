@@ -4,13 +4,13 @@ import os.path as osp
 import json
 import torch
 from torch import nn
+import torch.nn.functional as F
 import torch.backends.cudnn as cudnn
 import numpy as np
 import time
 import shutil
-from torch.utils.tensorboard import SummaryWriter
-from tensorboard import program
-from .aux import sample_z, TrainingStatTracker, update_progress, update_stdout, sec2dhms
+from .config import STYLEGAN_LAYERS
+from .aux import TrainingStatTracker, update_progress, update_stdout, sec2dhms
 
 
 class DataParallelPassthrough(nn.DataParallel):
@@ -30,16 +30,13 @@ class Trainer(object):
         self.use_cuda = use_cuda
         self.multi_gpu = multi_gpu
 
-        # Use TensorBoard
-        self.tensorboard = self.params.tensorboard
-
         # Set output directory for current experiment (wip)
         self.wip_dir = osp.join("experiments", "wip", exp_dir)
 
         # Set directory for completed experiment
         self.complete_dir = osp.join("experiments", "complete", exp_dir)
 
-        # Create log sub-directory and define stat.json file
+        # Create log subdirectory and define stat.json file
         self.stats_json = osp.join(self.wip_dir, 'stats.json')
         if not osp.isfile(self.stats_json):
             with open(self.stats_json, 'w') as out:
@@ -50,17 +47,6 @@ class Trainer(object):
         os.makedirs(self.models_dir, exist_ok=True)
         # Define checkpoint model file
         self.checkpoint = osp.join(self.models_dir, 'checkpoint.pt')
-
-        # Setup TensorBoard
-        if self.tensorboard:
-            # Create tensorboard sub-directory
-            self.tb_dir = osp.join(self.wip_dir, 'tensorboard')
-            os.makedirs(self.tb_dir, exist_ok=True)
-            self.tb = program.TensorBoard()
-            self.tb.configure(argv=[None, '--logdir', self.tb_dir])
-            self.tb_url = self.tb.launch()
-            print("#. Start TensorBoard at {}".format(self.tb_url))
-            self.tb_writer = SummaryWriter(log_dir=self.tb_dir)
 
         # Define cross entropy loss function
         self.cross_entropy = nn.CrossEntropyLoss()
@@ -130,9 +116,9 @@ class Trainer(object):
         """Training function.
 
         Args:
-            generator     :
-            support_sets  :
-            reconstructor :
+            generator     : non-trainable (pre-trained) GAN generator
+            support_sets  : trainable latent paths model
+            reconstructor : trainable reconstructor
 
         """
         # Save initial `support_sets` model as `support_sets_init.pt`
@@ -191,13 +177,19 @@ class Trainer(object):
             support_sets.zero_grad()
             reconstructor.zero_grad()
 
-            # Sample latent codes from standard (truncated) Gaussian -- torch.Size([batch_size, generator.dim_z])
-            z = sample_z(batch_size=self.params.batch_size, dim_z=generator.dim_z, truncation=self.params.z_truncation)
+            # Sample latent codes from standard Gaussian
+            z = torch.randn(self.params.batch_size, generator.dim_z)
             if self.use_cuda:
                 z = z.cuda()
 
             # Generate images for the given latent codes
-            img = generator(z)
+            latent_code = z
+            if 'stylegan' in self.params.gan:
+                if self.params.stylegan_space == 'W':
+                    latent_code = generator.get_w(z, truncation=self.params.truncation)[:, 0, :]
+                elif self.params.stylegan_space == 'W+':
+                    latent_code = generator.get_w(z, truncation=self.params.truncation)
+            img = generator(latent_code)
 
             # Sample indices of shift vectors (`self.params.batch_size` out of `self.params.num_support_sets`)
             target_support_sets_indices = torch.randint(0, self.params.num_support_sets, [self.params.batch_size])
@@ -230,13 +222,28 @@ class Trainer(object):
             for i, (index, val) in enumerate(zip(target_support_sets_indices, target_shift_magnitudes)):
                 support_sets_mask[i][index] += 1.0
 
-            # Calculate shift vectors for the given latent codes -- in the case of StyleGAN2, if --shift-in-w-space is
-            # set, the calculate of the shifts will be done in the W-space
-            shift = target_shift_magnitudes.reshape(-1, 1) * \
-                support_sets(support_sets_mask, generator.get_w(z) if self.params.shift_in_w_space else z)
+            # Calculate shift vectors for the given latent codes -- in the case of StyleGAN, shifts live in the
+            # self.params.stylegan_space, i.e., in Z-, W-, or W+-space. In the Z-/W-space the dimensionality of the
+            # latent space is 512. In the case of W+-space, the dimensionality is 512 * (self.params.stylegan_layer + 1)
+            if ('stylegan' in self.params.gan) and (self.params.stylegan_space == 'W+'):
+                shift = target_shift_magnitudes.reshape(-1, 1) * support_sets(
+                    support_sets_mask, latent_code[:, :self.params.stylegan_layer + 1, :].reshape(latent_code.shape[0],
+                                                                                                  -1))
+            else:
+                shift = target_shift_magnitudes.reshape(-1, 1) * support_sets(support_sets_mask, latent_code)
 
             # Generate images the shifted latent codes
-            img_shifted = generator(z, shift)
+            if ('stylegan' in self.params.gan) and (self.params.stylegan_space == 'W+'):
+                latent_code_reshaped = latent_code.reshape(latent_code.shape[0], -1)
+                shift = F.pad(input=shift,
+                              pad=(0, (STYLEGAN_LAYERS[self.params.gan] - 1 - self.params.stylegan_layer) * 512),
+                              mode='constant',
+                              value=0)
+                latent_code_shifted = latent_code_reshaped + shift
+                latent_code_shifted_reshaped = latent_code_shifted.reshape_as(latent_code)
+                img_shifted = generator(latent_code_shifted_reshaped)
+            else:
+                img_shifted = generator(latent_code + shift)
 
             # Predict support sets indices and shift magnitudes
             predicted_support_sets_indices, predicted_shift_magnitudes = reconstructor(img, img_shifted)
@@ -259,11 +266,6 @@ class Trainer(object):
                                      classification_loss=classification_loss.item(),
                                      regression_loss=regression_loss.item(),
                                      total_loss=loss.item())
-
-            # Update tensorboard plots for training statistics
-            if self.tensorboard:
-                for key, value in self.stat_tracker.get_means().items():
-                    self.tb_writer.add_scalar(key, value, iteration)
 
             # Get time of completion of current iteration
             iter_t = time.time()

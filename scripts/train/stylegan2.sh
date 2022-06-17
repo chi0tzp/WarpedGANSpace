@@ -1,30 +1,22 @@
 #!/bin/bash
 
-
 # === Experiment configuration ===
-gan_type="StyleGAN2"
-stylegan2_resolution=1024
-z_truncation=0.7
-w_space=true
+gan="stylegan2_ffhq1024"
+stylegan_space="W+"
+stylegan_layer=11
+truncation=0.7
 learn_alphas=false
 learn_gammas=true
-num_support_sets=200
-num_support_dipoles=512
+num_support_sets=100
+num_support_dipoles=16
 min_shift_magnitude=0.1
 max_shift_magnitude=0.2
-reconstructor_type="ResNet"
 batch_size=12
 max_iter=150000
-tensorboard=true
 # ================================
 
 
 # Run training script
-shift_in_w_space=""
-if $w_space ; then
-  shift_in_w_space="--shift-in-w-space"
-fi
-
 learn_a=""
 if $learn_alphas ; then
   learn_a="--learn-alphas"
@@ -35,17 +27,11 @@ if $learn_gammas ; then
   learn_g="--learn-gammas"
 fi
 
-tb=""
-if $tensorboard ; then
-  tb="--tensorboard"
-fi
 
-python train.py $tb \
-                --gan-type=${gan_type} \
-                --z-truncation=${z_truncation} \
-                --stylegan2-resolution=${stylegan2_resolution} \
-                $shift_in_w_space \
-                --reconstructor-type=${reconstructor_type} \
+python train.py --gan=${gan} \
+                --truncation=${truncation} \
+                --stylegan-space=${stylegan_space} \
+                --stylegan-layer=${stylegan_layer} \
                 $learn_a \
                 $learn_g \
                 --num-support-sets=${num_support_sets} \

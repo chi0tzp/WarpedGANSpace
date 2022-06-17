@@ -6,10 +6,7 @@ import hashlib
 import tarfile
 import time
 import urllib.request
-from lib import GAN_WEIGHTS, SFD, ARCFACE, FAIRFACE, HOPENET, AUDET, CELEBA_ATTRIBUTES, \
-    SNGAN_MNIST_LeNet_K64_D128_LearnGammas_eps0d15_0d25, SNGAN_AnimeFaces_LeNet_K64_D128_LearnGammas_eps0d25_0d35, \
-    BigGAN_239_ResNet_K120_D256_LearnGammas_eps0d15_0d25, ProgGAN_ResNet_K200_D512_LearnGammas_eps0d1_0d2, \
-    StyleGAN2_1024_W_ResNet_K200_D512_LearnGammas_eps0d1_0d2
+from lib import GENFORCE, GENFORCE_MODELS, SFD, ARCFACE, FAIRFACE, HOPENET, AUDET, CELEBA_ATTRIBUTES
 
 
 def reporthook(count, block_size, total_size):
@@ -65,11 +62,8 @@ def main():
         -- AU detector [14] for 12 DISFA [15] Action Units
         -- Facial attributes detector [16] for 5 CelebA [17] attributes
 
-    and (optionally) the following pre-trained WarpedGANSpace models:
-        --SNGAN_MNIST_LeNet_K64_D128_LearnGammas_eps0.15_0.25,
-        --SNGAN_AnimeFaces_LeNet_K64_D128_LearnGammas_eps0.25_0.35,
-        --BigGAN_239_ResNet_K120_D256_LearnGammas_eps0.15_0.25
-        --ProgGAN_ResNet_K200_D512_LearnGammas_eps0.1_0.2
+    and (optionally) the following pre-trained WarpedGANSpace [18] models:
+        -- TODO: +++
 
     References:
 
@@ -107,7 +101,8 @@ def main():
          International Conference on Computer Vision. 2021.
     [17] Liu, Ziwei, et al. "Deep learning face attributes in the wild." Proceedings of the IEEE international
          conference on computer vision. 2015.
-
+    [18] Tzelepis, Christos, Georgios Tzimiropoulos, and Ioannis Patras. "WarpedGANSpace: Finding non-linear RBF paths
+         in GAN latent space." Proceedings of the IEEE/CVF International Conference on Computer Vision. 2021.
     """
     parser = argparse.ArgumentParser("Download pre-trained attribute detectors and (optionally) WarpedGANSpace models")
     parser.add_argument('-m', '--models', action='store_true',
@@ -116,74 +111,86 @@ def main():
     args = parser.parse_args()
 
     # Create pre-trained models root directory
-    pretrained_attributes_root = osp.join('models', 'pretrained')
-    os.makedirs(pretrained_attributes_root, exist_ok=True)
+    pretrained_models_root = osp.join('models', 'pretrained')
+    os.makedirs(pretrained_models_root, exist_ok=True)
 
-    # Download pre-trained GAN generators
-    print("#. Download pre-trained GAN generators models:")
-    for m in ('SNGAN_MNIST', 'SNGAN_AnimeFaces', 'BigGAN', 'ProgGAN', 'StyleGAN2'):
-        print("  \\__.{} ".format(m))
-        model_dir = osp.join(pretrained_attributes_root, 'generators', m)
-        print("      \\__Create dir: {}".format(model_dir))
-        os.makedirs(model_dir, exist_ok=True)
-        download(src=GAN_WEIGHTS[m]['url'], sha256sum=GAN_WEIGHTS[m]['sha256sum'], dest=model_dir)
-
-    print("#. Download pre-trained SFD face detector model...")
-    print("  \\__.Face detector (SFD)")
-    download(src=SFD[0], sha256sum=SFD[1], dest=pretrained_attributes_root)
+    # Download the following pre-trained GAN generators (under models/pretrained/)
+    print("#. Download pre-trained GAN generators...")
+    print("  \\__.GenForce")
+    download_genforce_models = False
+    for k, v in GENFORCE_MODELS.items():
+        if not osp.exists(osp.join(pretrained_models_root, 'genforce', v[0])):
+            download_genforce_models = True
+            break
+    if download_genforce_models:
+        download(src=GENFORCE[0], sha256sum=GENFORCE[1], dest=pretrained_models_root)
+    else:
+        print("      \\__Already exists.")
 
     print("#. Download pre-trained ArcFace model...")
     print("  \\__.ArcFace")
-    download(src=ARCFACE[0], sha256sum=ARCFACE[1], dest=pretrained_attributes_root)
+    if osp.exists(osp.join(pretrained_models_root, 'arcface', 'model_ir_se50.pth')):
+        print("      \\__Already exists.")
+    else:
+        download(src=ARCFACE[0], sha256sum=ARCFACE[1], dest=pretrained_models_root)
+
+    print("#. Download pre-trained SFD face detector model...")
+    print("  \\__.Face detector (SFD)")
+    if osp.exists(osp.join(pretrained_models_root, 'sfd', 's3fd-619a316812.pth')):
+        print("      \\__Already exists.")
+    else:
+        download(src=SFD[0], sha256sum=SFD[1], dest=pretrained_models_root)
 
     print("#. Download pre-trained FairFace model...")
     print("  \\__.FairFace")
-    download(src=FAIRFACE[0], sha256sum=FAIRFACE[1], dest=pretrained_attributes_root)
+    if osp.exists(osp.join(pretrained_models_root, 'fairface', 'fairface_alldata_4race_20191111.pt')) and \
+            osp.exists(osp.join(pretrained_models_root, 'fairface', 'res34_fair_align_multi_7_20190809.pt')):
+        print("      \\__Already exists.")
+    else:
+        download(src=FAIRFACE[0], sha256sum=FAIRFACE[1], dest=pretrained_models_root)
 
     print("#. Download pre-trained Hopenet model...")
     print("  \\__.Hopenet")
-    download(src=HOPENET[0], sha256sum=HOPENET[1], dest=pretrained_attributes_root)
+    if osp.exists(osp.join(pretrained_models_root, 'hopenet', 'hopenet_alpha1.pkl')) and \
+            osp.exists(osp.join(pretrained_models_root, 'hopenet', 'hopenet_alpha2.pkl')) and \
+            osp.exists(osp.join(pretrained_models_root, 'hopenet', 'hopenet_robust_alpha1.pkl')):
+        print("      \\__Already exists.")
+    else:
+        download(src=HOPENET[0], sha256sum=HOPENET[1], dest=pretrained_models_root)
 
     print("#. Download pre-trained AU detector model...")
     print("  \\__.FANet")
-    download(src=AUDET[0], sha256sum=AUDET[1], dest=pretrained_attributes_root)
+    if osp.exists(osp.join(pretrained_models_root, 'au_detector', 'disfa_adaptation_f0.pth')):
+        print("      \\__Already exists.")
+    else:
+        download(src=AUDET[0], sha256sum=AUDET[1], dest=pretrained_models_root)
 
     print("#. Download pre-trained CelebA attributes predictors models...")
     print("  \\__.CelebA")
-    download(src=CELEBA_ATTRIBUTES[0], sha256sum=CELEBA_ATTRIBUTES[1], dest=pretrained_attributes_root)
+    if osp.exists(osp.join(pretrained_models_root, 'celeba_attributes', 'eval_predictor.pth.tar')):
+        print("      \\__Already exists.")
+    else:
+        download(src=CELEBA_ATTRIBUTES[0], sha256sum=CELEBA_ATTRIBUTES[1], dest=pretrained_models_root)
+
+    ####################################################################################################################
 
     # Download pre-trained WarpedGANSpace models
-    if args.models:
-        # Create WarpedGANSpace pre-trained models root directory
-        pretrained_warpedganspace_root = osp.join('experiments', 'complete')
-        os.makedirs(pretrained_warpedganspace_root, exist_ok=True)
-
-        print("#. Download pre-trained WarpedGANSpace models...")
-
-        print("  \\__.SNGAN_MNIST_LeNet_K64_D128_LearnGammas_eps0.15_0.25")
-        download(src=SNGAN_MNIST_LeNet_K64_D128_LearnGammas_eps0d15_0d25[0],
-                 sha256sum=SNGAN_MNIST_LeNet_K64_D128_LearnGammas_eps0d15_0d25[1],
-                 dest=pretrained_warpedganspace_root)
-
-        print("  \\__.SNGAN_AnimeFaces_LeNet_K64_D128_LearnGammas_eps0.25_0.35")
-        download(src=SNGAN_AnimeFaces_LeNet_K64_D128_LearnGammas_eps0d25_0d35[0],
-                 sha256sum=SNGAN_AnimeFaces_LeNet_K64_D128_LearnGammas_eps0d25_0d35[1],
-                 dest=pretrained_warpedganspace_root)
-
-        print("  \\__.BigGAN_239_ResNet_K120_D256_LearnGammas_eps0.15_0.25")
-        download(src=BigGAN_239_ResNet_K120_D256_LearnGammas_eps0d15_0d25[0],
-                 sha256sum=BigGAN_239_ResNet_K120_D256_LearnGammas_eps0d15_0d25[1],
-                 dest=pretrained_warpedganspace_root)
-
-        print("  \\__.ProgGAN_ResNet_K200_D512_LearnGammas_eps0.1_0.2")
-        download(src=ProgGAN_ResNet_K200_D512_LearnGammas_eps0d1_0d2[0],
-                 sha256sum=ProgGAN_ResNet_K200_D512_LearnGammas_eps0d1_0d2[1],
-                 dest=pretrained_warpedganspace_root)
-
-        print("  \\__.StyleGAN2_1024_W_ResNet_K200_D512_LearnGammas_eps0d1_0d2")
-        download(src=StyleGAN2_1024_W_ResNet_K200_D512_LearnGammas_eps0d1_0d2[0],
-                 sha256sum=StyleGAN2_1024_W_ResNet_K200_D512_LearnGammas_eps0d1_0d2[1],
-                 dest=pretrained_warpedganspace_root)
+    # if args.models:
+    #     # Create WarpedGANSpace pre-trained models root directory
+    #     pretrained_warpedganspace_root = osp.join('experiments', 'complete')
+    #     os.makedirs(pretrained_warpedganspace_root, exist_ok=True)
+    #
+    #     print("#. Download pre-trained WarpedGANSpace models...")
+    #
+    #     print("  \\__.ProgGAN_ResNet_K200_D512_LearnGammas_eps0.1_0.2")
+    #     download(src=ProgGAN_ResNet_K200_D512_LearnGammas_eps0d1_0d2[0],
+    #              sha256sum=ProgGAN_ResNet_K200_D512_LearnGammas_eps0d1_0d2[1],
+    #              dest=pretrained_warpedganspace_root)
+    #
+    #     print("  \\__.StyleGAN2_1024_W_ResNet_K200_D512_LearnGammas_eps0d1_0d2")
+    #     download(src=StyleGAN2_1024_W_ResNet_K200_D512_LearnGammas_eps0d1_0d2[0],
+    #              sha256sum=StyleGAN2_1024_W_ResNet_K200_D512_LearnGammas_eps0d1_0d2[1],
+    #              dest=pretrained_warpedganspace_root)
 
 
 if __name__ == '__main__':
