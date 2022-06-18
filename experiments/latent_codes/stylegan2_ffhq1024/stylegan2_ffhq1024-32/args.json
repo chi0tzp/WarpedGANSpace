@@ -1,1 +1,0 @@
-{"verbose": true, "gan": "stylegan2_ffhq1024", "truncation": 0.6, "num_samples": 32, "cuda": true}

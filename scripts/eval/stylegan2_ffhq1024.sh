@@ -1,18 +1,18 @@
 #!/bin/bash
 
 # === Configuration ===
-pool="ProgGAN_8"
+pool="stylegan2_ffhq1024-1"
 eps=0.15
-shift_steps=30
-shift_leap=1
-batch_size=16
+shift_steps=80
+shift_leap=5
+batch_size=6
 gif_size=256
 num_imgs=5
 metric="corr+corr_l1"
 # =====================
 
 # Define experiment directories list
-declare -a EXPERIMENTS=("experiments/complete/ProgGAN-ResNet-K200-D512-LearnGammas-eps0.1_0.2")
+declare -a EXPERIMENTS=("experiments/complete/WarpedGANSpace_stylegan2_ffhq1024-W+-K100-D16-LearnGammas-eps0.1_0.2")
 
 # Define attribute groups (see `rank_interpretable_paths.py`)
 declare -a ATTRIBUTE_GROUPS=("Age-FareFace"
@@ -20,10 +20,7 @@ declare -a ATTRIBUTE_GROUPS=("Age-FareFace"
                              "Gender"
                              "Rotation"
                              "Smiling-AU12"
-                             "Smiling-CelebA"
-                             "Brow-Lowerer-AU4"
-                             "Beard"
-                             "Bangs")
+                             "Smiling-CelebA")
 
 # Traverse latent and attribute spaces, and rank interpretable paths for the given experiments
 for exp in "${EXPERIMENTS[@]}"
