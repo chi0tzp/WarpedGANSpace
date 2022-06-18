@@ -1,3 +1,4 @@
+import sys
 import argparse
 import os
 import os.path as osp
@@ -80,10 +81,10 @@ def main():
         --exp         : set experiment's model dir, as created by `train.py` and used by `traverse_latent_space.py`.
                         That is, it should contain the latent traversals for at least one latent codes/images pool,
                         under the results/ directory.
-        --pool        : set pool of latent codes (should be a subdirectory of experiments/<exp>/results/<gan_type>, as
+        --pool        : set pool of latent codes (should be a subdirectory of experiments/<exp>/results/<gan>, as
                         created by traverse_latent_space.py)
         If the following two arguments are specified, evaluation (attribute space traversals) will be performed only for
-        the given configuration (subdir of experiments/<exp>/results/<gan_type>/<pool>/):
+        the given configuration (subdir of experiments/<exp>/results/<gan>/<pool>/):
         --shift-steps : number of shift steps (per positive/negative path direction)
         --eps         : shift magnitude
         ================================================================================================================
@@ -131,12 +132,12 @@ def main():
     if not osp.isdir(args.exp):
         raise NotADirectoryError("Error: invalid experiment's directory: {}".format(args.exp))
     else:
-        # Get gan_type
+        # Get gan type
         args_json_file = osp.join(args.exp, 'args.json')
         if not osp.isfile(args_json_file):
             raise FileNotFoundError("File not found: {}".format(args_json_file))
         args_json = ModelArgs(**json.load(open(args_json_file)))
-        gan_type = args_json.__dict__["gan_type"]
+        gan = args_json.__dict__["gan"]
         # Check results directory
         if not osp.isdir(latent_traversal_dir):
             raise NotADirectoryError("Error: pool directory {} not found under {}".format(
@@ -351,7 +352,7 @@ def main():
                 # -- Smiling    : Ratio of exposed teeth and open mouth.                                              ##
                 # -- Age        : below 15, 15-30, 30-40, 40-50, 50-60, and above 60.                                 ##
                 ########################################################################################################
-                if gan_type == 'StyleGAN2':
+                if 'stylegan' in gan:
                     # According to [7], transform image to range [-1, 1] before mean-std normalization
                     with torch.no_grad():
                         attribute_predictions = celeba_5(
