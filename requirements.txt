@@ -17,3 +17,6 @@ pandas
 # pyqt5
 # pyqt5-tools
 # TODO: Check which packages are redundant
+
+#
+mycolorpy

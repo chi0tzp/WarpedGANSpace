@@ -1,7 +1,10 @@
 #!/bin/bash
 
 # === Experiment configuration ===
-gan="pggan_celebahq1024"
+gan="stylegan2_ffhq1024"
+stylegan_space="W+"
+stylegan_layer=11
+truncation=0.7
 learn_alphas=false
 learn_gammas=true
 beta=0.001
@@ -27,6 +30,9 @@ fi
 
 
 python train.py --gan=${gan} \
+                --truncation=${truncation} \
+                --stylegan-space=${stylegan_space} \
+                --stylegan-layer=${stylegan_layer} \
                 $learn_a \
                 $learn_g \
                 --beta=${beta} \

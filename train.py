@@ -63,8 +63,8 @@ def main():
     parser.add_argument('-D', '--num-support-dipoles', type=int, help="set number of support dipoles per support set")
     parser.add_argument('--learn-alphas', action='store_true', help='learn RBF alpha params')
     parser.add_argument('--learn-gammas', action='store_true', help='learn RBF gamma params')
-    parser.add_argument('-g', '--gamma', type=float, help="set RBF gamma param; when --learn-gammas is set, this will "
-                                                          "be the initial value of gammas for all RBFs")
+    parser.add_argument('-b', '--beta', type=float, default=0.1, help="set RBF beta param; when --learn-gammas is set, "
+                                                                      "this will be used to initialise the RBF gammas")
     parser.add_argument('--support-set-lr', type=float, default=1e-4, help="set learning rate")
 
     # === Reconstructor (R) ========================================================================================== #
@@ -131,7 +131,6 @@ def main():
     support_vectors_dim = G.dim_z
     if ('stylegan' in args.gan) and (args.stylegan_space == 'W+'):
         support_vectors_dim *= (args.stylegan_layer + 1)
-    gamma_init = 1.0 / support_vectors_dim if args.gamma is None else args.gamma
 
     # Get expected latent norm
     with open(osp.join('models', 'expected_latent_norms.json'), 'r') as f:
@@ -155,17 +154,14 @@ def main():
     print("  \\__Support Vectors dim       : {}".format(support_vectors_dim))
     print("  \\__Learn RBF alphas          : {}".format(args.learn_alphas))
     print("  \\__Learn RBF gammas          : {}".format(args.learn_gammas))
-    if args.learn_gammas:
-        print("  \\__Initial RBF gamma         : {}".format(gamma_init))
-    else:
-        print("  \\__RBF gamma                 : {}".format(gamma_init))
+    print("  \\__RBF beta param            : {}".format(args.beta))
 
     S = SupportSets(num_support_sets=args.num_support_sets,
                     num_support_dipoles=args.num_support_dipoles,
                     support_vectors_dim=support_vectors_dim,
                     learn_alphas=args.learn_alphas,
                     learn_gammas=args.learn_gammas,
-                    gamma=gamma_init,
+                    beta=args.beta,
                     expected_latent_norm=expected_latent_norm)
 
     # Count number of trainable parameters

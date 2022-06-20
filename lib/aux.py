@@ -41,7 +41,7 @@ def create_exp_dir(args):
     Experiment's directory name format:
 
         WarpedGANSpace_<gan_type>(-{Z,W,W+})-<reconstructor_type>-K<num_support_sets>-
-            D<num_support_dipoles>(-LearnAlphas)(-LearnGammas)-eps<min_shift_magnitude>_<max_shift_magnitude>
+            D<num_support_dipoles>(-LearnAlphas)(-LearnGammas)-beta_<beta>-eps<min_shift_magnitude>_<max_shift_magnitude>
     E.g.:
 
         experiments/wip/ProgGAN-ResNet-K200-N32-LearnGammas-eps0.35_0.5
@@ -60,6 +60,7 @@ def create_exp_dir(args):
         exp_dir += '-LearnAlphas'
     if args.learn_gammas:
         exp_dir += '-LearnGammas'
+    exp_dir += "-beta_{}".format(args.beta)
     exp_dir += "-eps{}_{}".format(args.min_shift_magnitude, args.max_shift_magnitude)
 
     # Create output directory (wip)

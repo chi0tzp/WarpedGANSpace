@@ -1,10 +1,12 @@
+import sys
+import numpy as np
 import torch
 from torch import nn
 
 
 class SupportSets(nn.Module):
     def __init__(self, num_support_sets, num_support_dipoles, support_vectors_dim, expected_latent_norm=20.0,
-                 learn_alphas=False, learn_gammas=False, gamma=None):
+                 learn_alphas=False, learn_gammas=False, beta=0.001):
         """SupportSets class constructor.
 
         Args:
@@ -14,7 +16,7 @@ class SupportSets(nn.Module):
             expected_latent_norm      : expected norm of the latent codes for the given GAN type
             learn_alphas (bool)       : learn RBF alphas
             learn_gammas (bool)       : learn RBF gammas
-            gamma (float)             : RBF gamma parameter
+            beta (float)              : RBF beta parameter
         """
         super(SupportSets, self).__init__()
         self.num_support_sets = num_support_sets
@@ -23,8 +25,7 @@ class SupportSets(nn.Module):
         self.expected_latent_norm = expected_latent_norm
         self.learn_alphas = learn_alphas
         self.learn_gammas = learn_gammas
-        self.gamma = gamma
-        self.loggamma = torch.log(torch.scalar_tensor(self.gamma))
+        self.beta = beta
 
         ################################################################################################################
         ##                                                                                                            ##
@@ -38,8 +39,12 @@ class SupportSets(nn.Module):
                                          requires_grad=True)
         # Initialisation of support sets -- Choose r_min and r_max based on the expected latent norm; i.e., the expected
         # norm of a latent code drawn from the latent space (Z, W or W+) for the given truncation parameter
-        self.r_min = 0.8 * self.expected_latent_norm
-        self.r_max = 0.9 * self.expected_latent_norm
+
+        # self.r_min = 0.8 * self.expected_latent_norm
+        # self.r_max = 0.9 * self.expected_latent_norm
+
+        self.r_min = 2.0 * self.expected_latent_norm
+        self.r_max = 5.0 * self.expected_latent_norm
 
         self.radii = torch.arange(self.r_min, self.r_max, (self.r_max - self.r_min) / self.num_support_sets)
         SUPPORT_SETS = torch.zeros(self.num_support_sets, 2 * self.num_support_dipoles, self.support_vectors_dim)
@@ -77,8 +82,12 @@ class SupportSets(nn.Module):
         ##                                                                                                            ##
         ################################################################################################################
         # Define RBF gammas and initialize
-        self.LOGGAMMA = nn.Parameter(data=self.loggamma * torch.ones(self.num_support_sets, 1),
-                                     requires_grad=self.learn_gammas)
+        self.LOGGAMMA = nn.Parameter(data=torch.ones(self.num_support_sets, 1), requires_grad=self.learn_gammas)
+        LOGGAMMA = torch.zeros(self.num_support_sets, 1)
+        for k in range(self.num_support_sets):
+            g = -np.log(self.beta) / ((2 * self.radii[k]) ** 2)
+            LOGGAMMA[k] = torch.log(torch.Tensor([g]))
+        self.LOGGAMMA.data = LOGGAMMA.clone()
 
     def forward(self, support_sets_mask, z):
         # Get RBF support sets batch
@@ -89,10 +98,12 @@ class SupportSets(nn.Module):
         alphas_batch = torch.matmul(support_sets_mask, self.ALPHAS).unsqueeze(dim=2)
 
         # Get batch of RBF gamma/log(gamma) parameters
-        if self.learn_gammas:
-            gammas_batch = torch.exp(torch.matmul(support_sets_mask, self.LOGGAMMA).unsqueeze(dim=2))
-        else:
-            gammas_batch = self.gamma * torch.ones(z.size()[0], 2 * self.num_support_dipoles, 1)
+        # REVIEW: ???
+        # if self.learn_gammas:
+        #     gammas_batch = torch.exp(torch.matmul(support_sets_mask, self.LOGGAMMA).unsqueeze(dim=2))
+        # else:
+        #     gammas_batch = self.gamma * torch.ones(z.size()[0], 2 * self.num_support_dipoles, 1)
+        gammas_batch = torch.exp(torch.matmul(support_sets_mask, self.LOGGAMMA).unsqueeze(dim=2))
 
         # Calculate grad of f at z
         D = z.unsqueeze(dim=1).repeat(1, 2 * self.num_support_dipoles, 1) - support_sets_batch
