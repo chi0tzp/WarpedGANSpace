@@ -5,11 +5,11 @@ gan="pggan_celebahq1024"
 learn_alphas=false
 learn_gammas=true
 beta=0.5
-num_support_sets=32
-num_support_dipoles=16
+num_support_sets=8
+num_support_dipoles=1
 min_shift_magnitude=0.1
 max_shift_magnitude=0.2
-batch_size=12
+batch_size=2
 max_iter=150000
 # ================================
 
@@ -27,6 +27,7 @@ fi
 
 
 python train.py --gan=${gan} \
+                --support-set-lr=1e-3 \
                 $learn_a \
                 $learn_g \
                 --beta=${beta} \
