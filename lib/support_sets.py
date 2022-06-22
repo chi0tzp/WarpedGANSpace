@@ -86,7 +86,7 @@ class SupportSets(nn.Module):
         # for k in range(self.num_support_sets):
         #     g = -np.log(self.beta) / ((2 * self.radii[k]) ** 2)
         #     self.LOGGAMMA.data[k] = torch.log(torch.Tensor([g]))
-        
+
         self.LOGGAMMA = nn.Parameter(
             data=torch.log(torch.scalar_tensor(1.0 / self.support_vectors_dim)) * torch.ones(self.num_support_sets, 1),
             requires_grad=self.learn_gammas)

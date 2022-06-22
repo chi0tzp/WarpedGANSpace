@@ -121,31 +121,27 @@ def main():
     print("  \\__Pre-trained weights: {}".format(GENFORCE_MODELS[args.gan][0]))
     G = load_generator(model_name=args.gan,
                        latent_is_w=('stylegan' in args.gan) and ('W' in args.stylegan_space),
-                       verbose=True).eval()
-
-    # Upload GAN generator model to GPU
-    if use_cuda:
-        G = G.cuda()
+                       verbose=True)
 
     # Set support vector dimensionality and initial gamma param
     support_vectors_dim = G.dim_z
     if ('stylegan' in args.gan) and (args.stylegan_space == 'W+'):
         support_vectors_dim *= (args.stylegan_layer + 1)
 
-    # Get expected latent norm
-    with open(osp.join('models', 'expected_latent_norms.json'), 'r') as f:
-        expected_latent_norms_dict = json.load(f)
+    # Get Jung radii
+    with open(osp.join('models', 'jung_radii.json'), 'r') as f:
+        jung_radii_dict = json.load(f)
 
     if 'stylegan' in args.gan:
         if 'W+' in args.stylegan_space:
-            lm = expected_latent_norms_dict[args.gan]['W']['{}'.format(args.stylegan_layer)]
+            lm = jung_radii_dict[args.gan]['W']['{}'.format(args.stylegan_layer)]
         elif 'W' in args.stylegan_space:
-            lm = expected_latent_norms_dict[args.gan]['W']['0']
+            lm = jung_radii_dict[args.gan]['W']['0']
         else:
-            lm = expected_latent_norms_dict[args.gan]['Z']
-        expected_latent_norm = lm[0] * args.truncation + lm[1]
+            lm = jung_radii_dict[args.gan]['Z']
+        jung_radius = lm[0] * args.truncation + lm[1]
     else:
-        expected_latent_norm = expected_latent_norms_dict[args.gan]['Z'][1]
+        jung_radius = jung_radii_dict[args.gan]['Z'][1]
 
     # Build Support Sets model S
     print("#. Build Support Sets S...")
@@ -155,6 +151,7 @@ def main():
     print("  \\__Learn RBF alphas          : {}".format(args.learn_alphas))
     print("  \\__Learn RBF gammas          : {}".format(args.learn_gammas))
     print("  \\__RBF beta param            : {}".format(args.beta))
+    print("  \\_Jung radius                : {}".format(jung_radius))
 
     S = SupportSets(num_support_sets=args.num_support_sets,
                     num_support_dipoles=args.num_support_dipoles,
@@ -162,7 +159,7 @@ def main():
                     learn_alphas=args.learn_alphas,
                     learn_gammas=args.learn_gammas,
                     beta=args.beta,
-                    expected_latent_norm=expected_latent_norm)
+                    jung_radius=jung_radius)
 
     # Count number of trainable parameters
     print("  \\__Trainable parameters: {:,}".format(sum(p.numel() for p in S.parameters() if p.requires_grad)))
