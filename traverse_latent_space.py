@@ -190,7 +190,7 @@ def main():
         print("  \\__Pre-trained weights: {}".format(GENFORCE_MODELS[gan][0]))
 
     G = load_generator(model_name=gan,
-                       latent_is_w=('stylegan' in gan) and ('W' in args_json.__dict__["stylegan_space"]),
+                       latent_is_w=('stylegan' in gan) and ('W' in stylegan_space),
                        verbose=args.verbose).eval()
 
     # Upload GAN generator model to GPU
@@ -215,7 +215,8 @@ def main():
                     support_vectors_dim=support_vectors_dim,
                     learn_alphas=args_json.__dict__["learn_alphas"],
                     learn_gammas=args_json.__dict__["learn_gammas"],
-                    gamma=1.0 / support_vectors_dim)
+                    beta=args_json.__dict__["beta"],
+                    jung_radius=1)
 
     # Load pre-trained weights and set to evaluation mode
     if args.verbose:

@@ -38,13 +38,8 @@ class SupportSets(nn.Module):
                                                          2 * self.num_support_dipoles * self.support_vectors_dim),
                                          requires_grad=True)
         # Initialisation of support sets -- Choose r_min and r_max based on TODO: +++
-
         self.r_min = 0.9 * self.jung_radius
         self.r_max = 1.25 * self.jung_radius
-
-        # self.r_min = 1
-        # self.r_max = 4
-
         self.radii = torch.arange(self.r_min, self.r_max, (self.r_max - self.r_min) / self.num_support_sets)
         SUPPORT_SETS = torch.zeros(self.num_support_sets, 2 * self.num_support_dipoles, self.support_vectors_dim)
         for k in range(self.num_support_sets):
@@ -81,15 +76,10 @@ class SupportSets(nn.Module):
         ##                                                                                                            ##
         ################################################################################################################
         # Define RBF gammas and initialize
-
-        # self.LOGGAMMA = nn.Parameter(data=torch.ones(self.num_support_sets, 1), requires_grad=self.learn_gammas)
-        # for k in range(self.num_support_sets):
-        #     g = -np.log(self.beta) / ((2 * self.radii[k]) ** 2)
-        #     self.LOGGAMMA.data[k] = torch.log(torch.Tensor([g]))
-
-        self.LOGGAMMA = nn.Parameter(
-            data=torch.log(torch.scalar_tensor(1.0 / self.support_vectors_dim)) * torch.ones(self.num_support_sets, 1),
-            requires_grad=self.learn_gammas)
+        self.LOGGAMMA = nn.Parameter(data=torch.ones(self.num_support_sets, 1), requires_grad=self.learn_gammas)
+        for k in range(self.num_support_sets):
+            g = -np.log(self.beta) / ((2 * self.radii[k]) ** 2)
+            self.LOGGAMMA.data[k] = torch.log(torch.Tensor([g]))
 
     def forward(self, support_sets_mask, z):
         # Get RBF support sets batch

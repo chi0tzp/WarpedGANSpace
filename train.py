@@ -151,7 +151,7 @@ def main():
     print("  \\__Learn RBF alphas          : {}".format(args.learn_alphas))
     print("  \\__Learn RBF gammas          : {}".format(args.learn_gammas))
     print("  \\__RBF beta param            : {}".format(args.beta))
-    print("  \\_Jung radius                : {}".format(jung_radius))
+    print("  \\__Jung radius                : {}".format(jung_radius))
 
     S = SupportSets(num_support_sets=args.num_support_sets,
                     num_support_dipoles=args.num_support_dipoles,
